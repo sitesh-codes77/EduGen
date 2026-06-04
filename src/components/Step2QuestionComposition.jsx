@@ -3,11 +3,11 @@ import { Settings2, X, Hash, Award } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 export const Q_TYPES = [
-  { key: 'mcq',       label: 'MCQ',          description: 'Multiple Choice – Single Answer', defaultMarks: 1 },
-  { key: 'msq',       label: 'MSQ',          description: 'Multiple Select – Multi Answer',  defaultMarks: 2 },
-  { key: 'numerical', label: 'Numerical',    description: 'Number input answers',            defaultMarks: 4 },
-  { key: 'short',     label: 'Short Answer', description: '2–3 sentence answers',            defaultMarks: 3 },
-  { key: 'long',      label: 'Long Answer',  description: 'Essay-type detailed answers',     defaultMarks: 5 },
+  { key: 'mcq', label: 'MCQ', description: 'Multiple Choice – Single Answer', defaultMarks: 1 },
+  { key: 'msq', label: 'MSQ', description: 'Multiple Select – Multi Answer', defaultMarks: 2 },
+  { key: 'numerical', label: 'Numerical', description: 'Number input answers', defaultMarks: 4 },
+  { key: 'short', label: 'Short Answer', description: '2–3 sentence answers', defaultMarks: 3 },
+  { key: 'long', label: 'Long Answer', description: 'Essay-type detailed answers', defaultMarks: 5 },
 ]
 
 /* ─── small reusable number input ─────────────────────── */
@@ -34,7 +34,7 @@ function NumInput({ value, onChange, min = 0, max = 999, width = '68px', color =
 function ConfigModal({ type, config, totalQuestions, usedByOthers, onSave, onClose }) {
   const [local, setLocal] = useState({ count: config.count, marks: config.marks })
   const maxCount = Math.max(0, totalQuestions - usedByOthers)
-  const subtotal  = local.count * local.marks
+  const subtotal = local.count * local.marks
 
   return (
     <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, backdropFilter: 'blur(4px)' }}
@@ -102,7 +102,7 @@ export default function Step2QuestionComposition({ data, onTotalQChange, onTotal
   const [configOpen, setConfigOpen] = useState(null)
 
   const tq = data.totalQuestions === '' ? 0 : Number(data.totalQuestions)
-  const tm = data.totalMarks    === '' ? 0 : Number(data.totalMarks)
+  const tm = data.totalMarks === '' ? 0 : Number(data.totalMarks)
 
   const allocatedCount = Q_TYPES.reduce((s, t) => s + (data[t.key]?.count ?? 0), 0)
   const allocatedMarks = Q_TYPES.reduce((s, t) => s + (data[t.key]?.count ?? 0) * (data[t.key]?.marks ?? 0), 0)
@@ -137,7 +137,7 @@ export default function Step2QuestionComposition({ data, onTotalQChange, onTotal
             onChange={(e) => onTotalQChange(e.target.value === '' ? '' : Math.max(0, Number(e.target.value)))}
             style={{ width: '100%', backgroundColor: 'var(--input-bg)', border: '2px solid var(--border)', borderRadius: '10px', padding: '12px 16px', fontSize: '1.5rem', fontWeight: 800, outline: 'none', transition: 'border-color 0.2s, box-shadow 0.2s' }}
             onFocus={(e) => { e.target.style.borderColor = '#0EA5E9'; e.target.style.boxShadow = '0 0 0 4px rgba(14,165,233,0.15)' }}
-            onBlur={(e)  => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none' }}
+            onBlur={(e) => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none' }}
           />
           <p style={{ color: !countOk && tq > 0 ? '#EF4444' : 'var(--text-3)', fontSize: '0.85rem', marginTop: '10px', fontWeight: 500 }}>
             {tq > 0 ? `Allocated: ${allocatedCount} / ${tq}` : 'Enter the target number of questions'}
@@ -159,7 +159,7 @@ export default function Step2QuestionComposition({ data, onTotalQChange, onTotal
             onChange={(e) => onTotalMarksChange(e.target.value === '' ? '' : Math.max(0, Number(e.target.value)))}
             style={{ width: '100%', backgroundColor: 'var(--input-bg)', border: '2px solid var(--border)', borderRadius: '10px', padding: '12px 16px', fontSize: '1.5rem', fontWeight: 800, outline: 'none', transition: 'border-color 0.2s, box-shadow 0.2s' }}
             onFocus={(e) => { e.target.style.borderColor = '#10B981'; e.target.style.boxShadow = '0 0 0 4px rgba(16,185,129,0.15)' }}
-            onBlur={(e)  => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none' }}
+            onBlur={(e) => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none' }}
           />
           <p style={{ color: !marksOk && tm > 0 ? '#EF4444' : 'var(--text-3)', fontSize: '0.85rem', marginTop: '10px', fontWeight: 500 }}>
             {tm > 0 ? `Allocated: ${allocatedMarks} / ${tm}` : 'Enter the total marks for this paper'}
@@ -179,7 +179,7 @@ export default function Step2QuestionComposition({ data, onTotalQChange, onTotal
           </div>
 
           {Q_TYPES.map((type, idx) => {
-            const cfg     = data[type.key] || { count: 0, marks: type.defaultMarks }
+            const cfg = data[type.key] || { count: 0, marks: type.defaultMarks }
             return (
               <div key={type.key}
                 style={{ display: 'grid', gridTemplateColumns: '2fr 120px 120px 140px', padding: '16px 24px', alignItems: 'center', gap: '16px', borderBottom: idx < Q_TYPES.length - 1 ? '1px solid var(--border)' : 'none', transition: 'background 0.2s ease' }}
