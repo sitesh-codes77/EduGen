@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { ChevronDown, Check } from 'lucide-react'
 
 const BOOKS = [
@@ -23,8 +23,20 @@ const CHAPTERS_MAP = {
 
 function Dropdown({ label, options, value, onChange, placeholder }) {
   const [open, setOpen] = useState(false)
+  const containerRef = useRef(null)
+
+  useEffect(() => {
+    const handleOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setOpen(false)
+      }
+    }
+    if (open) document.addEventListener('mousedown', handleOutside)
+    return () => document.removeEventListener('mousedown', handleOutside)
+  }, [open])
+
   return (
-    <div style={{ position: 'relative', flex: 1, minWidth: '180px' }}>
+    <div ref={containerRef} style={{ position: 'relative', flex: 1, minWidth: '180px' }}>
       {label && (
         <label style={{ display: 'block', color: 'var(--text-3)', fontSize: '0.75rem', fontWeight: 700, marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
           {label}
@@ -37,7 +49,7 @@ function Dropdown({ label, options, value, onChange, placeholder }) {
       </button>
 
       {open && (
-        <div style={{ position: 'absolute', top: 'calc(100% + 5px)', left: 0, right: 0, backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '10px', zIndex: 100, overflow: 'hidden', boxShadow: '0 12px 40px rgba(0,0,0,0.25)' }}>
+        <div style={{ position: 'absolute', top: 'calc(100% + 5px)', left: 0, right: 0, backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '10px', zIndex: 100, overflowY: 'auto', maxHeight: '240px', boxShadow: '0 12px 40px rgba(0,0,0,0.25)' }}>
           {options.map((opt) => (
             <button key={opt} type="button" onClick={() => { onChange(opt); setOpen(false) }}
               style={{ width: '100%', padding: '9px 13px', background: value === opt ? 'var(--primary-dim)' : 'none', border: 'none', color: value === opt ? '#0EA5E9' : 'var(--text-2)', fontSize: '0.875rem', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', justifyContent: 'space-between', transition: 'background 0.15s' }}
@@ -53,9 +65,21 @@ function Dropdown({ label, options, value, onChange, placeholder }) {
   )
 }
 
-function MultiSelectDropdown({ label, options, selected, onChange }) {
+function MultiSelectDropdown({ label, options, selected = [], onChange }) {
   const [open, setOpen] = useState(false)
-  const allSelected = selected.length === options.length
+  const containerRef = useRef(null)
+
+  useEffect(() => {
+    const handleOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setOpen(false)
+      }
+    }
+    if (open) document.addEventListener('mousedown', handleOutside)
+    return () => document.removeEventListener('mousedown', handleOutside)
+  }, [open])
+
+  const allSelected = options.length > 0 && selected.length === options.length
   const toggleAll = () => onChange(allSelected ? [] : [...options])
   const toggle = (ch) => onChange(selected.includes(ch) ? selected.filter((c) => c !== ch) : [...selected, ch])
 
@@ -66,7 +90,7 @@ function MultiSelectDropdown({ label, options, selected, onChange }) {
     : `${selected.length} chapters selected`
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div ref={containerRef} style={{ position: 'relative' }}>
       {label && (
         <label style={{ display: 'block', color: 'var(--text-3)', fontSize: '0.75rem', fontWeight: 700, marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
           {label}

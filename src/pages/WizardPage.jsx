@@ -281,7 +281,7 @@ export default function WizardPage() {
         </div>
 
         {/* Step content card */}
-        <div style={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '14px', padding: '2rem', boxShadow: 'var(--shadow)', flex: 1, overflow: 'hidden' }}>
+        <div style={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '14px', padding: '2rem', boxShadow: 'var(--shadow)', flex: 1 }}>
           <AnimatePresence mode="wait">
             <motion.div
               key={currentStep}
