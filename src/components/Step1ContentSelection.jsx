@@ -49,7 +49,7 @@ function Dropdown({ label, options, value, onChange, placeholder }) {
       </button>
 
       {open && (
-        <div style={{ position: 'absolute', top: 'calc(100% + 5px)', left: 0, right: 0, backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '10px', zIndex: 100, overflowY: 'auto', maxHeight: '240px', boxShadow: '0 12px 40px rgba(0,0,0,0.25)' }}>
+        <div style={{ position: 'relative', marginTop: '5px', backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '10px', zIndex: 100, overflowY: 'auto', maxHeight: '240px', boxShadow: '0 12px 40px rgba(0,0,0,0.25)' }}>
           {options.map((opt) => (
             <button key={opt} type="button" onClick={() => { onChange(opt); setOpen(false) }}
               style={{ width: '100%', padding: '9px 13px', background: value === opt ? 'var(--primary-dim)' : 'none', border: 'none', color: value === opt ? '#0EA5E9' : 'var(--text-2)', fontSize: '0.875rem', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', justifyContent: 'space-between', transition: 'background 0.15s' }}
@@ -108,7 +108,7 @@ function MultiSelectDropdown({ label, options, selected = [], onChange }) {
       </button>
 
       {open && (
-        <div style={{ position: 'absolute', top: 'calc(100% + 5px)', left: 0, right: 0, backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '10px', zIndex: 100, boxShadow: '0 12px 40px rgba(0,0,0,0.25)', maxHeight: '240px', overflowY: 'auto' }}>
+        <div style={{ position: 'relative', marginTop: '5px', backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '10px', zIndex: 100, boxShadow: '0 12px 40px rgba(0,0,0,0.25)', maxHeight: '240px', overflowY: 'auto' }}>
           <button type="button" onClick={toggleAll}
             style={{ width: '100%', padding: '9px 13px', background: 'none', border: 'none', borderBottom: '1px solid var(--border)', color: '#0EA5E9', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '9px' }}>
             <Checkbox checked={allSelected} />
