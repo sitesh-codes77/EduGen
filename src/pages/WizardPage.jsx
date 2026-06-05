@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import {
   BookOpen, ListChecks, BarChart3, ClipboardCheck,
   ChevronRight, RotateCcw, Sparkles, FileCheck2,
-  ArrowLeft, X, Check, AlertCircle,
+  ArrowLeft, X, Check, AlertCircle, NotebookText
 } from 'lucide-react'
 import useWizardStore from '../store/useWizardStore'
 import ThemeToggle from '../components/ThemeToggle'
@@ -125,6 +125,7 @@ export default function WizardPage() {
   const updateStep1      = useWizardStore((s) => s.updateStep1)
   const setTotalQuestions= useWizardStore((s) => s.setTotalQuestions)
   const setTotalMarks    = useWizardStore((s) => s.setTotalMarks)
+  const setDuration      = useWizardStore((s) => s.setDuration)
   const updateTypeConfig = useWizardStore((s) => s.updateTypeConfig)
   const updateStep3      = useWizardStore((s) => s.updateStep3)
   const resetCurrentStep = useWizardStore((s) => s.resetCurrentStep)
@@ -250,10 +251,8 @@ export default function WizardPage() {
           onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-3)')}>
           <ArrowLeft size={15} />
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <div style={{ background: 'linear-gradient(135deg,#0EA5E9,#6366F1)', borderRadius: '6px', padding: '4px' }}>
-              <Sparkles size={13} color="#fff" />
-            </div>
-            <span style={{ fontWeight: 800, fontSize: '0.95rem', background: 'linear-gradient(90deg,#0EA5E9,#818CF8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>EduGen</span>
+            <NotebookText size={16} color="#0EA5E9" />
+            <span style={{ fontWeight: 800, fontSize: '0.95rem', color: '#0EA5E9' }}>EduGen</span>
           </div>
         </button>
 
@@ -296,8 +295,10 @@ export default function WizardPage() {
               {currentStep === 2 && (
                 <Step2QuestionComposition
                   data={step2}
+                  chapters={step1.chapters || []}
                   onTotalQChange={setTotalQuestions}
                   onTotalMarksChange={setTotalMarks}
+                  onDurationChange={setDuration}
                   onTypeConfig={updateTypeConfig}
                 />
               )}
@@ -321,14 +322,16 @@ export default function WizardPage() {
 
         {/* ── Action Bar ── */}
         <div style={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '14px', padding: '1rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: 'var(--shadow)', gap: '1rem', flexWrap: 'wrap' }}>
-          {/* Reset current step */}
-          <button onClick={handleReset}
-            style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'transparent', border: '1.5px solid var(--border)', borderRadius: '9px', padding: '9px 18px', color: 'var(--text-3)', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#EF4444'; e.currentTarget.style.color = '#EF4444' }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-3)' }}
-            title="Clears only this step's data">
-            <RotateCcw size={14} /> Reset Step
-          </button>
+          {/* Reset current step — hidden on Review page */}
+          {!isFinalStep && (
+            <button onClick={handleReset}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'transparent', border: '1.5px solid var(--border)', borderRadius: '9px', padding: '9px 18px', color: 'var(--text-3)', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#EF4444'; e.currentTarget.style.color = '#EF4444' }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-3)' }}
+              title="Clears only this step's data">
+              <RotateCcw size={14} /> Reset
+            </button>
+          )}
 
           <div style={{ display: 'flex', gap: '0.65rem', alignItems: 'center' }}>
             {/* Back */}

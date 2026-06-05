@@ -5,6 +5,7 @@ const INITIAL_STEP1 = { book: '', grade: '', chapters: [] }
 const INITIAL_STEP2 = {
   totalQuestions: '',
   totalMarks: '',
+  duration: '',
   mcq:   { count: 0, marks: 1 },
   msq:   { count: 0, marks: 2 },
   numerical: { count: 0, marks: 4 },
@@ -27,56 +28,55 @@ function distributeQuestionsAndMarks(tqStr, tmStr, currentState) {
   const tq = tqStr === '' ? 0 : Number(tqStr)
   const tm = tmStr === '' ? 0 : Number(tmStr)
 
-  if (tq <= 0) {
-    return {
-      mcq: { count: 0, marks: 1 },
-      msq: { count: 0, marks: 2 },
-      numerical: { count: 0, marks: 4 },
-      short: { count: 0, marks: 3 },
-      long: { count: 0, marks: 5 },
-    }
-  }
-
-  if (tm <= 0) {
-    return {
-      mcq: { count: tq, marks: 1 },
-      msq: { count: 0, marks: 2 },
-      numerical: { count: 0, marks: 4 },
-      short: { count: 0, marks: 3 },
-      long: { count: 0, marks: 5 },
-    }
-  }
-
-  if (tm % tq === 0) {
-    return {
-      mcq: { count: tq, marks: tm / tq },
-      msq: { count: 0, marks: 2 },
-      numerical: { count: 0, marks: 4 },
-      short: { count: 0, marks: 3 },
-      long: { count: 0, marks: 5 },
-    }
-  }
-
-  // Not cleanly divisible
-  let mcqCount = tq - 1
-  let msqCount = 1
-  let mcqMarks = Math.floor(tm / tq) || 1
-  let msqMarks = tm - (mcqCount * mcqMarks)
-
-  // Balance logic if msqMarks is <= 0 or we need to shift to 2 MSQs
-  if (msqMarks <= 0 && tq > 2) {
-    mcqCount = tq - 2
-    msqCount = 2
-    msqMarks = Math.max(1, Math.floor((tm - (mcqCount * mcqMarks)) / msqCount))
-  }
-
-  return {
-    mcq: { count: mcqCount, marks: mcqMarks },
-    msq: { count: msqCount, marks: msqMarks },
+  const defaultState = {
+    mcq: { count: 0, marks: 1 },
+    msq: { count: 0, marks: 2 },
     numerical: { count: 0, marks: 4 },
     short: { count: 0, marks: 3 },
     long: { count: 0, marks: 5 },
   }
+
+  if (tq <= 0) return defaultState
+  if (tm <= 0 || tq > tm) return { ...defaultState, mcq: { count: tq, marks: 1 } }
+
+  const avg = Math.floor(tm / tq)
+  const rem = tm % tq
+
+  if (avg >= 20 || (avg === 20 && rem > 0)) {
+    return { ...defaultState, long: { count: tq, marks: 20 } }
+  }
+
+  if (avg < 10 || (avg === 10 && rem === 0)) {
+    if (rem === 0) {
+      return { ...defaultState, mcq: { count: tq, marks: avg } }
+    }
+    return {
+      ...defaultState,
+      mcq: { count: tq - rem, marks: avg },
+      msq: { count: rem, marks: avg + 1 },
+    }
+  }
+
+  if (avg === 10 && rem > 0) {
+    return {
+      ...defaultState,
+      mcq: { count: tq - rem, marks: 10 },
+      numerical: { count: rem, marks: 11 },
+    }
+  }
+
+  if (avg > 10 && avg < 20) {
+    if (rem === 0) {
+      return { ...defaultState, numerical: { count: tq, marks: avg } }
+    }
+    return {
+      ...defaultState,
+      numerical: { count: tq - rem, marks: avg },
+      long: { count: rem, marks: avg + 1 },
+    }
+  }
+
+  return defaultState
 }
 
 const useWizardStore = create((set, get) => ({
@@ -118,6 +118,11 @@ const useWizardStore = create((set, get) => ({
         totalMarks: val,
         ...distributeQuestionsAndMarks(state.step2.totalQuestions, val, state.step2),
       }
+    })),
+
+  setDuration: (val) =>
+    set((state) => ({
+      step2: { ...state.step2, duration: val },
     })),
 
   updateTypeConfig: (typeKey, patch) =>

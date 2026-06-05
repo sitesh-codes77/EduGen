@@ -1,96 +1,211 @@
-import { useState } from 'react'
-import { Settings2, X, Hash, Award } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { useState, useCallback, useRef } from 'react'
+import { Settings2, X, HelpCircle, CheckCircle2, AlertCircle } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 
 export const Q_TYPES = [
-  { key: 'mcq', label: 'MCQ', description: 'Multiple Choice – Single Answer', defaultMarks: 1 },
-  { key: 'msq', label: 'MSQ', description: 'Multiple Select – Multi Answer', defaultMarks: 2 },
-  { key: 'numerical', label: 'Numerical', description: 'Number input answers', defaultMarks: 4 },
-  { key: 'short', label: 'Short Answer', description: '2–3 sentence answers', defaultMarks: 3 },
-  { key: 'long', label: 'Long Answer', description: 'Essay-type detailed answers', defaultMarks: 5 },
+  { key: 'mcq',       label: 'MCQ',          description: 'Multiple Choice – Single Answer',  defaultMarks: 1,  maxMarks: 10 },
+  { key: 'msq',       label: 'MSQ',          description: 'Multiple Select – Multi Answer',    defaultMarks: 2,  maxMarks: 10 },
+  { key: 'numerical', label: 'Numerical',    description: 'Number input answers',              defaultMarks: 4,  maxMarks: 20 },
+  { key: 'short',     label: 'Short Answer', description: '2–3 sentence answers',              defaultMarks: 3,  maxMarks: 10 },
+  { key: 'long',      label: 'Long Answer',  description: 'Essay-type detailed answers',       defaultMarks: 5,  maxMarks: 20 },
 ]
 
-/* ─── small reusable number input ─────────────────────── */
-function NumInput({ value, onChange, min = 0, max = 999, width = '68px', color = 'var(--text-1)', highlight = false }) {
-  const [focused, setFocused] = useState(false)
+/* ─── Red flash toast ─────────────────────────────────── */
+function ErrorToast({ msg, visible }) {
   return (
-    <input
-      type="number" min={min} max={max} value={value}
-      onChange={(e) => onChange(Math.max(min, Math.min(max, Number(e.target.value))))}
-      onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
-      style={{
-        width, backgroundColor: 'var(--input-bg)',
-        border: `1.5px solid ${focused ? '#0EA5E9' : highlight ? 'var(--border-2)' : 'var(--input-border)'}`,
-        borderRadius: '8px', padding: '7px 8px', color,
-        fontSize: '0.9rem', fontWeight: 700, textAlign: 'center', outline: 'none',
-        boxShadow: focused ? '0 0 0 3px rgba(14,165,233,0.15)' : 'none',
-        transition: 'border-color 0.2s, box-shadow 0.2s',
-      }}
-    />
+    <AnimatePresence>
+      {visible && (
+        <motion.div
+          initial={{ opacity: 0, y: -8, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -8, scale: 0.96 }}
+          transition={{ duration: 0.2 }}
+          style={{
+            position: 'fixed', top: '1.25rem', left: '50%', transform: 'translateX(-50%)',
+            backgroundColor: '#1e0a0a', border: '1.5px solid #EF4444',
+            borderRadius: '12px', padding: '10px 18px', zIndex: 9999,
+            display: 'flex', alignItems: 'center', gap: '8px',
+            boxShadow: '0 8px 32px rgba(239,68,68,0.3)',
+          }}>
+          <AlertCircle size={15} color="#EF4444" />
+          <span style={{ color: '#FCA5A5', fontSize: '0.82rem', fontWeight: 700 }}>{msg}</span>
+        </motion.div>
+      )}
+    </AnimatePresence>
   )
 }
 
-/* ─── Configure modal ──────────────────────────────────── */
-function ConfigModal({ type, config, totalQuestions, usedByOthers, onSave, onClose }) {
-  const [local, setLocal] = useState({ count: config.count, marks: config.marks })
-  const maxCount = Math.max(0, totalQuestions - usedByOthers)
-  const subtotal = local.count * local.marks
+/* ─── Hook: timed error flash ─────────────────────────── */
+function useErrorFlash() {
+  const [msg, setMsg] = useState('')
+  const [visible, setVisible] = useState(false)
+  const timerRef = useRef(null)
+
+  const flash = useCallback((text) => {
+    setMsg(text)
+    setVisible(true)
+    clearTimeout(timerRef.current)
+    timerRef.current = setTimeout(() => setVisible(false), 2200)
+  }, [])
+
+  return { msg, visible, flash }
+}
+
+/* ─── Stepper Input — number + ▲▼ inside one box ─────── */
+function StepperInput({ value, onChange, min = 0, max = 999, active = false, placeholder = '0' }) {
+  const [focused, setFocused] = useState(false)
+
+  const borderColor = focused ? '#0EA5E9' : active ? '#0EA5E9' : 'var(--input-border)'
+  const bg          = active ? 'var(--primary-dim)' : 'var(--input-bg)'
+  const textColor   = active ? '#0EA5E9' : 'var(--text-1)'
 
   return (
-    <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, backdropFilter: 'blur(4px)' }}
+    <div style={{
+      display: 'inline-flex', alignItems: 'center',
+      border: `1.5px solid ${borderColor}`,
+      borderRadius: '9px', overflow: 'hidden',
+      backgroundColor: bg,
+      transition: 'all 0.2s',
+      boxShadow: focused ? '0 0 0 3px rgba(14,165,233,0.15)' : 'none',
+    }}>
+      <input
+        type="number" min={min} max={max}
+        value={value === 0 && !focused ? '' : value}
+        placeholder={placeholder}
+        onChange={(e) => {
+          const v = e.target.value === '' ? min : Number(e.target.value)
+          onChange(Math.max(min, Math.min(max, v)))
+        }}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        style={{
+          width: '52px', border: 'none', outline: 'none', background: 'transparent',
+          color: textColor, fontWeight: 800, fontSize: '0.9rem',
+          textAlign: 'center', padding: '7px 4px 7px 10px',
+        }}
+      />
+      {/* ▲▼ stepper column */}
+      <div style={{ display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+        <button
+          type="button"
+          onClick={() => onChange(Math.min(max, value + 1))}
+          style={{
+            width: '22px', height: '18px', border: 'none', background: 'transparent',
+            color: 'var(--text-3)', cursor: 'pointer', display: 'flex', alignItems: 'center',
+            justifyContent: 'center', fontSize: '0.55rem', lineHeight: 1,
+            transition: 'background 0.15s, color 0.15s',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(14,165,233,0.15)'; e.currentTarget.style.color = '#0EA5E9' }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-3)' }}
+        >▲</button>
+        <button
+          type="button"
+          onClick={() => onChange(Math.max(min, value - 1))}
+          style={{
+            width: '22px', height: '18px', border: 'none', background: 'transparent',
+            color: 'var(--text-3)', cursor: 'pointer', display: 'flex', alignItems: 'center',
+            justifyContent: 'center', fontSize: '0.55rem', lineHeight: 1,
+            transition: 'background 0.15s, color 0.15s',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(14,165,233,0.15)'; e.currentTarget.style.color = '#0EA5E9' }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-3)' }}
+        >▼</button>
+      </div>
+    </div>
+  )
+}
+
+/* ─── Chapter allocation modal ───────────────────────── */
+function ChapterModal({ type, config, chapters, onSave, onClose }) {
+  // Distribute count across chapters: 51% to first, rest split evenly
+  const initAlloc = () => {
+    const total = config.count
+    if (chapters.length === 0 || total === 0) return {}
+    const alloc = {}
+    const perChapter = Math.floor(total / chapters.length)
+    const extra = total % chapters.length
+    chapters.forEach((ch, i) => {
+      alloc[ch] = perChapter + (i === 0 ? extra : 0)
+    })
+    return alloc
+  }
+
+  const [alloc, setAlloc] = useState(initAlloc)
+  const total = Object.values(alloc).reduce((s, v) => s + (v || 0), 0)
+  const remaining = config.count - total
+
+  const setChapterCount = (ch, val) => {
+    const newAlloc = { ...alloc, [ch]: Math.max(0, val) }
+    setAlloc(newAlloc)
+  }
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, backdropFilter: 'blur(12px)' }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
-      <div style={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '1.75rem', width: '100%', maxWidth: '380px', boxShadow: '0 24px 60px rgba(0,0,0,0.4)' }}>
+      <div style={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '24px', padding: '2rem', width: '100%', maxWidth: '420px', boxShadow: '0 24px 64px rgba(0,0,0,0.7)', position: 'relative' }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
           <div>
-            <h3 style={{ color: 'var(--text-1)', fontWeight: 700, fontSize: '1rem' }}>Configure {type.label}</h3>
-            <p style={{ color: 'var(--text-3)', fontSize: '0.78rem', marginTop: '2px' }}>{type.description}</p>
+            <h3 style={{ color: 'var(--text-1)', fontWeight: 800, fontSize: '1.1rem', letterSpacing: '-0.02em' }}>
+              Assign {type.label} to Chapters
+            </h3>
+            <p style={{ color: 'var(--text-3)', fontSize: '0.8rem', marginTop: '4px' }}>
+              Total: <span style={{ color: '#0EA5E9', fontWeight: 700 }}>{config.count}</span> questions to distribute
+            </p>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-3)', cursor: 'pointer' }}><X size={16} /></button>
+          <button onClick={onClose} style={{ background: 'var(--card-2)', border: '1px solid var(--border)', borderRadius: '8px', padding: '6px', color: 'var(--text-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--text-1)' }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-3)' }}>
+            <X size={15} />
+          </button>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
-          {/* Count */}
-          <div>
-            <label style={{ display: 'block', color: 'var(--text-3)', fontSize: '0.72rem', fontWeight: 700, marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
-              Number of Questions <span style={{ color: 'var(--text-3)', fontWeight: 400 }}>(max: {totalQuestions === '' ? '—' : maxCount + local.count})</span>
-            </label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <button type="button" onClick={() => setLocal((p) => ({ ...p, count: Math.max(0, p.count - 1) }))}
-                style={{ width: '34px', height: '34px', backgroundColor: 'var(--card-2)', border: '1.5px solid var(--border)', borderRadius: '8px', color: 'var(--text-1)', fontSize: '1.1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
-              <NumInput value={local.count} onChange={(v) => setLocal((p) => ({ ...p, count: Math.min(maxCount + config.count, v) }))} min={0} width="80px" />
-              <button type="button" onClick={() => setLocal((p) => ({ ...p, count: Math.min(maxCount + config.count, p.count + 1) }))}
-                style={{ width: '34px', height: '34px', backgroundColor: 'var(--card-2)', border: '1.5px solid var(--border)', borderRadius: '8px', color: 'var(--text-1)', fontSize: '1.1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
+        {/* Chapter rows */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.25rem' }}>
+          {chapters.length === 0 ? (
+            <p style={{ color: 'var(--text-3)', fontSize: '0.875rem', textAlign: 'center', padding: '1rem 0' }}>
+              No chapters selected. Go back to Step 1 to select chapters.
+            </p>
+          ) : chapters.map((ch, i) => (
+            <div key={ch} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'var(--card-2)', border: '1px solid var(--border)', borderRadius: '12px', padding: '10px 14px', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
+                <div style={{ width: '22px', height: '22px', borderRadius: '6px', backgroundColor: 'var(--primary-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <span style={{ color: '#0EA5E9', fontSize: '0.65rem', fontWeight: 900 }}>{i + 1}</span>
+                </div>
+                <span style={{ color: 'var(--text-1)', fontSize: '0.82rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ch}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                <button onClick={() => setChapterCount(ch, (alloc[ch] || 0) - 1)}
+                  style={{ width: '28px', height: '28px', backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '7px', color: 'var(--text-1)', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
+                <input type="number" min={0} max={config.count} value={alloc[ch] || 0}
+                  onChange={(e) => setChapterCount(ch, Number(e.target.value))}
+                  style={{ width: '52px', backgroundColor: 'var(--input-bg)', border: '1.5px solid var(--input-border)', borderRadius: '8px', padding: '5px 6px', color: 'var(--text-1)', fontSize: '0.9rem', fontWeight: 800, textAlign: 'center', outline: 'none' }} />
+                <button onClick={() => setChapterCount(ch, (alloc[ch] || 0) + 1)}
+                  style={{ width: '28px', height: '28px', backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '7px', color: 'var(--text-1)', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
+              </div>
             </div>
-          </div>
-
-          {/* Marks per Q */}
-          <div>
-            <label style={{ display: 'block', color: 'var(--text-3)', fontSize: '0.72rem', fontWeight: 700, marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
-              Marks per Question
-            </label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <button type="button" onClick={() => setLocal((p) => ({ ...p, marks: Math.max(1, p.marks - 1) }))}
-                style={{ width: '34px', height: '34px', backgroundColor: 'var(--card-2)', border: '1.5px solid var(--border)', borderRadius: '8px', color: 'var(--text-1)', fontSize: '1.1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
-              <NumInput value={local.marks} onChange={(v) => setLocal((p) => ({ ...p, marks: Math.max(1, v) }))} min={1} width="80px" color="#0EA5E9" />
-              <button type="button" onClick={() => setLocal((p) => ({ ...p, marks: p.marks + 1 }))}
-                style={{ width: '34px', height: '34px', backgroundColor: 'var(--card-2)', border: '1.5px solid var(--border)', borderRadius: '8px', color: 'var(--text-1)', fontSize: '1.1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
-            </div>
-          </div>
-
-          {/* Subtotal pill */}
-          <div style={{ backgroundColor: 'var(--primary-dim)', border: '1px solid rgba(14,165,233,0.25)', borderRadius: '10px', padding: '0.85rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ color: 'var(--text-3)', fontSize: '0.82rem' }}>Subtotal contribution</span>
-            <span style={{ color: '#0EA5E9', fontWeight: 800, fontSize: '1.25rem' }}>
-              {subtotal} <span style={{ fontSize: '0.78rem', fontWeight: 500, color: 'var(--text-3)' }}>marks</span>
-            </span>
-          </div>
+          ))}
         </div>
 
-        <div style={{ display: 'flex', gap: '0.65rem', marginTop: '1.4rem' }}>
-          <button onClick={onClose} style={{ flex: 1, padding: '10px', backgroundColor: 'transparent', border: '1.5px solid var(--border)', borderRadius: '8px', color: 'var(--text-2)', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
-          <button onClick={() => { onSave(local); onClose() }}
-            style={{ flex: 1, padding: '10px', background: 'linear-gradient(135deg,#0EA5E9,#0284C7)', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '0.875rem', fontWeight: 700, cursor: 'pointer' }}>Apply</button>
+        {/* Remaining badge */}
+        <div style={{ backgroundColor: remaining === 0 ? 'rgba(16,185,129,0.08)' : remaining < 0 ? 'rgba(239,68,68,0.08)' : 'var(--primary-dim)', border: `1px solid ${remaining === 0 ? 'rgba(16,185,129,0.25)' : remaining < 0 ? 'rgba(239,68,68,0.25)' : 'rgba(14,165,233,0.2)'}`, borderRadius: '10px', padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <span style={{ color: 'var(--text-2)', fontSize: '0.82rem', fontWeight: 600 }}>
+            {remaining === 0 ? 'All questions assigned ✓' : remaining > 0 ? `${remaining} left to assign` : `${Math.abs(remaining)} over budget`}
+          </span>
+          <span style={{ color: remaining === 0 ? '#10B981' : remaining < 0 ? '#EF4444' : '#0EA5E9', fontWeight: 900, fontSize: '1.1rem' }}>
+            {total} / {config.count}
+          </span>
+        </div>
+
+        {/* Actions */}
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <button onClick={onClose} style={{ flex: 1, padding: '10px', backgroundColor: 'transparent', border: '1.5px solid var(--border)', borderRadius: '10px', color: 'var(--text-2)', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--text-2)'; e.currentTarget.style.color = 'var(--text-1)' }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-2)' }}>Cancel</button>
+          <button onClick={() => { onSave(alloc); onClose() }} disabled={remaining !== 0}
+            style={{ flex: 1, padding: '10px', background: remaining === 0 ? 'linear-gradient(135deg,#0EA5E9,#0284C7)' : 'var(--card-2)', border: 'none', borderRadius: '10px', color: remaining === 0 ? '#fff' : 'var(--text-3)', fontSize: '0.875rem', fontWeight: 700, cursor: remaining === 0 ? 'pointer' : 'not-allowed', boxShadow: remaining === 0 ? '0 4px 14px rgba(14,165,233,0.3)' : 'none', transition: 'all 0.2s' }}>
+            Apply to Chapters
+          </button>
         </div>
       </div>
     </div>
@@ -98,11 +213,15 @@ function ConfigModal({ type, config, totalQuestions, usedByOthers, onSave, onClo
 }
 
 /* ─── Main Step 2 Component ────────────────────────────── */
-export default function Step2QuestionComposition({ data, onTotalQChange, onTotalMarksChange, onTypeConfig }) {
-  const [configOpen, setConfigOpen] = useState(null)
+export default function Step2QuestionComposition({
+  data, chapters = [],
+  onTotalQChange, onTotalMarksChange, onDurationChange, onTypeConfig,
+}) {
+  const [configOpen, setConfigOpen]   = useState(null)
+  const { msg: errMsg, visible: errVisible, flash } = useErrorFlash()
 
   const tq = data.totalQuestions === '' ? 0 : Number(data.totalQuestions)
-  const tm = data.totalMarks === '' ? 0 : Number(data.totalMarks)
+  const tm = data.totalMarks     === '' ? 0 : Number(data.totalMarks)
 
   const allocatedCount = Q_TYPES.reduce((s, t) => s + (data[t.key]?.count ?? 0), 0)
   const allocatedMarks = Q_TYPES.reduce((s, t) => s + (data[t.key]?.count ?? 0) * (data[t.key]?.marks ?? 0), 0)
@@ -113,99 +232,170 @@ export default function Step2QuestionComposition({ data, onTotalQChange, onTotal
   const usedByOthers = (excludeKey) =>
     Q_TYPES.filter((t) => t.key !== excludeKey).reduce((s, t) => s + (data[t.key]?.count ?? 0), 0)
 
+  const marksPct = tm > 0 ? Math.min(100, Math.round((allocatedMarks / tm) * 100)) : 0
+
+  const handleCountChange = (typeKey, val) => {
+    const maxCount = tq === '' || tq === 0 ? 999 : tq - usedByOthers(typeKey)
+    if (val > maxCount) {
+      flash(`Count exceeds remaining questions (max ${maxCount} available)`)
+      val = maxCount
+    }
+    onTypeConfig(typeKey, { count: Math.max(0, val) })
+  }
+
+  const handleMarksChange = (typeKey, val, maxMarks) => {
+    if (val > maxMarks) {
+      flash(`Max ${maxMarks} marks allowed for ${Q_TYPES.find(t => t.key === typeKey)?.label}`)
+      val = maxMarks
+    }
+    onTypeConfig(typeKey, { marks: Math.max(1, val) })
+  }
+
+  const handleChapterSave = (typeKey, alloc) => {
+    // Store chapter allocation on the type config; also seed Step 3 easy values
+    onTypeConfig(typeKey, { chapterAlloc: alloc })
+  }
+
+  const labelStyle = { color: 'var(--text-3)', fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: '5px' }
+  const inputStyle = { width: '100%', backgroundColor: 'var(--input-bg)', border: '1.5px solid var(--input-border)', borderRadius: '8px', padding: '7px 10px', fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-1)', outline: 'none', transition: 'all 0.2s' }
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+      <ErrorToast msg={errMsg} visible={errVisible} />
+
       <div>
-        <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-1)', marginBottom: '0.3rem' }}>Question Composition</h2>
-        <p style={{ color: 'var(--text-3)', fontSize: '0.875rem' }}>Set the paper targets, then distribute questions by type.</p>
+        <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-1)', marginBottom: '0.35rem', letterSpacing: '-0.02em' }}>Question Composition</h2>
+        <p style={{ color: 'var(--text-3)', fontSize: '0.875rem' }}>Define paper targets and configure question counts per type.</p>
       </div>
 
-      {/* ── Target inputs ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Total Questions */}
-        <div style={{ backgroundColor: 'var(--card-2)', border: '1px solid var(--border)', borderRadius: '16px', padding: '1.25rem 1.5rem', boxShadow: 'var(--shadow)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1rem' }}>
-            <Hash size={16} color="#0EA5E9" />
-            <span style={{ color: 'var(--text-3)', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Total Number of Questions</span>
+      {/* ── Paper Basics Fieldset ── */}
+      <fieldset style={{ border: '1.5px solid var(--border)', borderRadius: '14px', padding: '0', backgroundColor: 'var(--card-2)', boxShadow: 'var(--shadow)' }}>
+        <legend style={{ marginLeft: '14px', padding: '0 8px', color: 'var(--text-3)', fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+          Paper Basics
+        </legend>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.25rem', padding: '14px 18px 16px' }}>
+          {/* Total Questions */}
+          <div>
+            <label htmlFor="totalQuestionsInput" style={labelStyle}>Total Questions</label>
+            <input
+              id="totalQuestionsInput"
+              type="number" min={0} max={500}
+              value={data.totalQuestions}
+              placeholder="e.g. 30"
+              onChange={(e) => onTotalQChange(e.target.value === '' ? '' : Math.max(0, Number(e.target.value)))}
+              style={inputStyle}
+              onFocus={(e) => { e.target.style.borderColor = '#0EA5E9'; e.target.style.boxShadow = '0 0 0 3px rgba(14,165,233,0.1)' }}
+              onBlur={(e) => { e.target.style.borderColor = 'var(--input-border)'; e.target.style.boxShadow = 'none' }}
+            />
           </div>
-          <input
-            id="totalQuestionsInput"
-            className="text-slate-900 dark:text-slate-50"
-            type="number" min={0} max={500}
-            value={data.totalQuestions}
-            placeholder="e.g. 30"
-            onChange={(e) => onTotalQChange(e.target.value === '' ? '' : Math.max(0, Number(e.target.value)))}
-            style={{ width: '100%', backgroundColor: 'var(--input-bg)', border: '2px solid var(--border)', borderRadius: '10px', padding: '12px 16px', fontSize: '1.5rem', fontWeight: 800, outline: 'none', transition: 'border-color 0.2s, box-shadow 0.2s' }}
-            onFocus={(e) => { e.target.style.borderColor = '#0EA5E9'; e.target.style.boxShadow = '0 0 0 4px rgba(14,165,233,0.15)' }}
-            onBlur={(e) => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none' }}
-          />
-          <p style={{ color: !countOk && tq > 0 ? '#EF4444' : 'var(--text-3)', fontSize: '0.85rem', marginTop: '10px', fontWeight: 500 }}>
-            {tq > 0 ? `Allocated: ${allocatedCount} / ${tq}` : 'Enter the target number of questions'}
-          </p>
-        </div>
-
-        {/* Total Marks */}
-        <div style={{ backgroundColor: 'var(--card-2)', border: '1px solid var(--border)', borderRadius: '16px', padding: '1.25rem 1.5rem', boxShadow: 'var(--shadow)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1rem' }}>
-            <Award size={16} color="#10B981" />
-            <span style={{ color: 'var(--text-3)', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Total Marks for Paper</span>
+          {/* Total Marks */}
+          <div>
+            <label htmlFor="totalMarksInput" style={labelStyle}>Total Marks</label>
+            <input
+              id="totalMarksInput"
+              type="number" min={0} max={2000}
+              value={data.totalMarks}
+              placeholder="e.g. 100"
+              onChange={(e) => onTotalMarksChange(e.target.value === '' ? '' : Math.max(0, Number(e.target.value)))}
+              style={inputStyle}
+              onFocus={(e) => { e.target.style.borderColor = '#0EA5E9'; e.target.style.boxShadow = '0 0 0 3px rgba(14,165,233,0.1)' }}
+              onBlur={(e) => { e.target.style.borderColor = 'var(--input-border)'; e.target.style.boxShadow = 'none' }}
+            />
           </div>
-          <input
-            id="totalMarksInput"
-            className="text-slate-900 dark:text-slate-50"
-            type="number" min={0} max={1000}
-            value={data.totalMarks}
-            placeholder="e.g. 100"
-            onChange={(e) => onTotalMarksChange(e.target.value === '' ? '' : Math.max(0, Number(e.target.value)))}
-            style={{ width: '100%', backgroundColor: 'var(--input-bg)', border: '2px solid var(--border)', borderRadius: '10px', padding: '12px 16px', fontSize: '1.5rem', fontWeight: 800, outline: 'none', transition: 'border-color 0.2s, box-shadow 0.2s' }}
-            onFocus={(e) => { e.target.style.borderColor = '#10B981'; e.target.style.boxShadow = '0 0 0 4px rgba(16,185,129,0.15)' }}
-            onBlur={(e) => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none' }}
-          />
-          <p style={{ color: !marksOk && tm > 0 ? '#EF4444' : 'var(--text-3)', fontSize: '0.85rem', marginTop: '10px', fontWeight: 500 }}>
-            {tm > 0 ? `Allocated: ${allocatedMarks} / ${tm}` : 'Enter the total marks for this paper'}
-          </p>
+          {/* Duration */}
+          <div>
+            <label htmlFor="durationInput" style={labelStyle}>Duration (min)</label>
+            <input
+              id="durationInput"
+              type="number" min={0} max={600}
+              value={data.duration ?? ''}
+              placeholder="e.g. 90"
+              onChange={(e) => onDurationChange && onDurationChange(e.target.value === '' ? '' : Math.max(0, Number(e.target.value)))}
+              style={inputStyle}
+              onFocus={(e) => { e.target.style.borderColor = '#0EA5E9'; e.target.style.boxShadow = '0 0 0 3px rgba(14,165,233,0.1)' }}
+              onBlur={(e) => { e.target.style.borderColor = 'var(--input-border)'; e.target.style.boxShadow = 'none' }}
+            />
+          </div>
         </div>
-      </div>
+        {/* Status row */}
+        <div style={{ borderTop: '1px solid var(--border)', padding: '8px 18px', display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: !countOk && tq > 0 ? '#EF4444' : countOk && tq > 0 ? '#10B981' : 'var(--text-3)', display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'currentColor', display: 'inline-block' }} />
+            {tq > 0 ? `Questions: ${allocatedCount} / ${tq}` : 'Questions target not set'}
+          </span>
+          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: !marksOk && tm > 0 ? '#EF4444' : marksOk && tm > 0 ? '#10B981' : 'var(--text-3)', display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'currentColor', display: 'inline-block' }} />
+            {tm > 0 ? `Marks: ${allocatedMarks} / ${tm}` : 'Marks target not set'}
+          </span>
+        </div>
+      </fieldset>
 
       {/* ── Distribution table ── */}
-      <div className="w-full overflow-x-auto" style={{ backgroundColor: 'var(--card-2)', border: '1px solid var(--border)', borderRadius: '16px', boxShadow: 'var(--shadow)' }}>
-        <div style={{ minWidth: '600px' }}>
+      <div className="w-full overflow-x-auto" style={{ backgroundColor: 'var(--card-2)', border: '1px solid var(--border)', borderRadius: '18px', boxShadow: 'var(--shadow)' }}>
+        <div style={{ minWidth: '560px' }}>
           {/* Table header */}
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 120px 120px 140px', padding: '16px 24px', backgroundColor: 'var(--card)', borderBottom: '1px solid var(--border)', gap: '16px', borderTopLeftRadius: '16px', borderTopRightRadius: '16px' }}>
-            <div style={{ color: 'var(--text-3)', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Question Type</div>
-            <div style={{ color: 'var(--text-3)', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center' }}>Count</div>
-            <div style={{ color: 'var(--text-3)', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center' }}>Mark</div>
-            <div></div>
+          <div style={{ display: 'grid', gridTemplateColumns: '2fr 120px 140px 130px', padding: '14px 20px', backgroundColor: 'var(--card)', borderBottom: '1px solid var(--border)', gap: '12px', borderTopLeftRadius: '18px', borderTopRightRadius: '18px' }}>
+            <div style={{ color: 'var(--text-3)', fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Question Type</div>
+            <div style={{ color: 'var(--text-3)', fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center' }}>Count</div>
+            <div style={{ color: 'var(--text-3)', fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center' }}>
+              Marks/Q <span style={{ color: 'rgba(14,165,233,0.6)', fontWeight: 600 }}>(max)</span>
+            </div>
+            <div style={{ color: 'var(--text-3)', fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'right' }}>Chapters</div>
           </div>
 
           {Q_TYPES.map((type, idx) => {
             const cfg = data[type.key] || { count: 0, marks: type.defaultMarks }
+            const maxCount = tq === 0 ? 999 : tq - usedByOthers(type.key) + cfg.count
+
             return (
               <div key={type.key}
-                style={{ display: 'grid', gridTemplateColumns: '2fr 120px 120px 140px', padding: '16px 24px', alignItems: 'center', gap: '16px', borderBottom: idx < Q_TYPES.length - 1 ? '1px solid var(--border)' : 'none', transition: 'background 0.2s ease' }}
+                style={{ display: 'grid', gridTemplateColumns: '2fr 120px 140px 130px', padding: '14px 20px', alignItems: 'center', gap: '12px', borderBottom: idx < Q_TYPES.length - 1 ? '1px solid var(--border)' : 'none', transition: 'background 0.2s ease' }}
                 onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--card)')}
                 onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <div style={{ color: 'var(--text-1)', fontWeight: 600, fontSize: '0.95rem' }}>{type.label}</div>
-                  <div style={{ color: 'var(--text-3)', fontSize: '0.85rem' }}>{type.description}</div>
+
+                {/* Type label */}
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <div style={{ width: '34px', height: '34px', borderRadius: '9px', backgroundColor: 'var(--card-2)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <HelpCircle size={15} color="var(--text-3)" />
+                  </div>
+                  <div>
+                    <div style={{ color: 'var(--text-1)', fontWeight: 700, fontSize: '0.88rem' }}>{type.label}</div>
+                    <div style={{ color: 'var(--text-3)', fontSize: '0.75rem' }}>{type.description}</div>
+                  </div>
                 </div>
-                {/* Count — inline editable */}
+
+                {/* Count — inline stepper */}
                 <div style={{ display: 'flex', justifyContent: 'center' }}>
-                  <NumInput value={cfg.count} onChange={(v) => onTypeConfig(type.key, { count: Math.min(tq === '' ? 999 : tq - usedByOthers(type.key), v) })} min={0} width="80px" highlight={cfg.count > 0} />
+                  <StepperInput
+                    value={cfg.count}
+                    min={0}
+                    max={maxCount}
+                    active={false}
+                    onChange={(v) => handleCountChange(type.key, v)}
+                  />
                 </div>
-                {/* Marks per Question */}
-                <div style={{ display: 'flex', justifyContent: 'center' }}>
-                  <span style={{ color: 'var(--text-1)', fontWeight: 700, fontSize: '1rem', backgroundColor: 'var(--card)', padding: '6px 20px', borderRadius: '10px', border: '1px solid var(--border)', display: 'inline-block', textAlign: 'center', minWidth: '60px' }}>{cfg.marks}</span>
+
+                {/* Marks — inline stepper with hard cap */}
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px' }}>
+                  <StepperInput
+                    value={cfg.marks}
+                    min={1}
+                    max={type.maxMarks}
+                    active={false}
+                    onChange={(v) => handleMarksChange(type.key, v, type.maxMarks)}
+                  />
+                  <span style={{ color: 'var(--text-3)', fontSize: '0.7rem', fontWeight: 600 }}>/ {type.maxMarks}</span>
                 </div>
-                {/* Configure */}
+
+                {/* Configure → Chapter assignment */}
                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                  <motion.button onClick={() => setConfigOpen(type)}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'var(--primary-dim)', border: '1px solid rgba(14,165,233,0.3)', borderRadius: '8px', padding: '8px 14px', color: '#0EA5E9', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.2s' }}
-                    onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(14,165,233,0.2)'; e.currentTarget.style.borderColor = '#0EA5E9' }}
-                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--primary-dim)'; e.currentTarget.style.borderColor = 'rgba(14,165,233,0.3)' }}>
-                    <Settings2 size={14} /> Configure
+                  <motion.button
+                    onClick={() => setConfigOpen(type)}
+                    whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '5px', backgroundColor: 'transparent', border: '1.5px solid var(--border)', borderRadius: '9px', padding: '7px 13px', color: 'var(--text-2)', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.2s' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--card)'; e.currentTarget.style.borderColor = '#0EA5E9'; e.currentTarget.style.color = '#0EA5E9' }}
+                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-2)' }}>
+                    <Settings2 size={12} /> Configure
                   </motion.button>
                 </div>
               </div>
@@ -216,35 +406,50 @@ export default function Step2QuestionComposition({ data, onTotalQChange, onTotal
 
       {/* ── Marks allocation bar ── */}
       {tm > 0 && (
-        <div style={{ backgroundColor: marksOk ? 'var(--success-dim)' : allocatedMarks > tm ? 'var(--danger-dim)' : 'var(--card-2)', border: `1px solid ${marksOk ? 'rgba(16,185,129,0.3)' : allocatedMarks > tm ? 'rgba(239,68,68,0.3)' : 'var(--border)'}`, borderRadius: '12px', padding: '1rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', transition: 'all 0.3s' }}>
-          <div>
-            <p style={{ color: 'var(--text-3)', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Marks Allocated</p>
-            <p style={{ color: 'var(--text-3)', fontSize: '0.72rem', marginTop: '2px' }}>
-              {Q_TYPES.filter((t) => (data[t.key]?.count ?? 0) > 0).map((t) => `${t.label}: ${data[t.key].count}×${data[t.key].marks}`).join(' + ') || '—'}
-            </p>
-          </div>
-          <div style={{ textAlign: 'right' }}>
-            <span style={{ fontSize: '1.8rem', fontWeight: 900, letterSpacing: '-0.03em', color: marksOk ? '#10B981' : allocatedMarks > tm ? '#EF4444' : '#0EA5E9' }}>
-              {allocatedMarks}
-            </span>
-            <span style={{ color: 'var(--text-3)', fontSize: '0.9rem' }}> / {tm}</span>
-            {!marksOk && tm > 0 && (
-              <p style={{ color: allocatedMarks > tm ? '#EF4444' : '#F59E0B', fontSize: '0.72rem', marginTop: '2px' }}>
-                {allocatedMarks > tm ? `Over by ${allocatedMarks - tm}` : `Remaining: ${tm - allocatedMarks}`}
+        <div style={{ backgroundColor: 'var(--card-2)', border: '1px solid var(--border)', borderRadius: '18px', padding: '1.25rem 1.5rem', boxShadow: 'var(--shadow)', display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+            <div>
+              <p style={{ color: 'var(--text-3)', fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>Marks Breakdown</p>
+              <p style={{ color: 'var(--text-2)', fontSize: '0.82rem', fontWeight: 500 }}>
+                {Q_TYPES.filter((t) => (data[t.key]?.count ?? 0) > 0).map((t) => `${t.label} (${data[t.key].count}×${data[t.key].marks})`).join(' + ') || 'No question counts set'}
               </p>
-            )}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+              <span style={{ fontSize: '2rem', fontWeight: 900, letterSpacing: '-0.03em', color: marksOk ? '#10B981' : allocatedMarks > tm ? '#EF4444' : '#0EA5E9', transition: 'color 0.2s' }}>
+                {allocatedMarks}
+              </span>
+              <span style={{ color: 'var(--text-3)', fontSize: '1rem', fontWeight: 700 }}> / {tm}</span>
+            </div>
+          </div>
+
+          <div>
+            <div style={{ height: '6px', backgroundColor: 'var(--card)', borderRadius: '999px', overflow: 'hidden', width: '100%' }}>
+              <div style={{ height: '100%', width: `${marksPct}%`, backgroundColor: marksOk ? '#10B981' : allocatedMarks > tm ? '#EF4444' : '#0EA5E9', borderRadius: '999px', transition: 'width 0.35s ease' }} />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px' }}>
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-3)', fontWeight: 500 }}>{marksPct}% allocated</span>
+              {!marksOk && (
+                <span style={{ color: allocatedMarks > tm ? '#EF4444' : '#F59E0B', fontSize: '0.72rem', fontWeight: 700 }}>
+                  {allocatedMarks > tm ? `Over by ${allocatedMarks - tm} marks` : `Remaining: ${tm - allocatedMarks} marks`}
+                </span>
+              )}
+              {marksOk && (
+                <span style={{ color: '#10B981', fontSize: '0.72rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '3px' }}>
+                  <CheckCircle2 size={11} /> Target achieved!
+                </span>
+              )}
+            </div>
           </div>
         </div>
       )}
 
-      {/* Configure modal */}
+      {/* Chapter allocation modal */}
       {configOpen && (
-        <ConfigModal
+        <ChapterModal
           type={configOpen}
           config={data[configOpen.key] || { count: 0, marks: configOpen.defaultMarks }}
-          totalQuestions={tq}
-          usedByOthers={usedByOthers(configOpen.key)}
-          onSave={(val) => onTypeConfig(configOpen.key, val)}
+          chapters={chapters}
+          onSave={(alloc) => handleChapterSave(configOpen.key, alloc)}
           onClose={() => setConfigOpen(null)}
         />
       )}

@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { Brain, Layers, Wand2, ArrowRight, Sparkles, ChevronRight } from 'lucide-react'
+import { Brain, Layers, Wand2, ArrowRight, Sparkles, ChevronRight, NotebookText } from 'lucide-react'
 import ThemeToggle from '../components/ThemeToggle'
 import useWizardStore from '../store/useWizardStore'
 
@@ -20,10 +20,8 @@ export default function LandingPage() {
         <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '0 1.5rem', height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           {/* Logo */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ background: 'linear-gradient(135deg,#0EA5E9,#6366F1)', borderRadius: '9px', padding: '6px' }}>
-              <Sparkles size={18} color="#fff" />
-            </div>
-            <span style={{ fontWeight: 800, fontSize: '1.15rem', background: 'linear-gradient(90deg,#0EA5E9,#818CF8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', letterSpacing: '-0.02em' }}>
+            <NotebookText size={22} color="#0EA5E9" />
+            <span style={{ fontWeight: 800, fontSize: '1.25rem', color: '#0EA5E9', letterSpacing: '-0.02em' }}>
               EduGen
             </span>
           </div>
@@ -34,9 +32,9 @@ export default function LandingPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <button
               onClick={() => navigate('/login')}
-              style={{ backgroundColor: 'transparent', border: '1.5px solid #0EA5E9', color: '#0EA5E9', borderRadius: '8px', padding: '7px 18px', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', transition: 'all 0.2s' }}
-              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#0EA5E9'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.boxShadow = '0 0 16px rgba(14,165,233,0.4)' }}
-              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#0EA5E9'; e.currentTarget.style.boxShadow = 'none' }}>
+              style={{ backgroundColor: '#0EA5E9', border: '1.5px solid #0EA5E9', color: '#fff', borderRadius: '999px', padding: '8px 24px', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', transition: 'all 0.2s' }}
+              onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 0 20px rgba(14,165,233,0.6)' }}
+              onMouseLeave={(e) => { e.currentTarget.style.boxShadow = 'none' }}>
               Login <ChevronRight size={13} />
             </button>
             <ThemeToggle />
@@ -56,7 +54,16 @@ export default function LandingPage() {
         </div>
 
         {/* Headline */}
-        <h1 style={{ fontSize: 'clamp(2.4rem,6vw,4.2rem)', fontWeight: 900, lineHeight: 1.1, letterSpacing: '-0.03em', maxWidth: '800px', marginBottom: '1.25rem', color: 'var(--text-1)' }}>
+        <h1 style={{ 
+          fontFamily: "'Plus Jakarta Sans', 'Noto Sans Math', sans-serif",
+          fontSize: 'clamp(2.4rem,6vw,4.2rem)', 
+          fontWeight: 900, 
+          lineHeight: 1.1, 
+          letterSpacing: '-0.03em', 
+          maxWidth: '800px', 
+          marginBottom: '1.25rem', 
+          color: 'var(--text-1)' 
+        }}>
           Intelligent{' '}
           <span style={{ background: 'linear-gradient(135deg,#0EA5E9 0%,#818CF8 50%,#10B981 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
             Question Paper
@@ -72,9 +79,9 @@ export default function LandingPage() {
         {/* CTA */}
         <div style={{ display: 'flex', gap: '0.875rem', flexWrap: 'wrap', justifyContent: 'center' }}>
           <button onClick={() => navigate('/login')}
-            style={{ background: 'linear-gradient(135deg,#0EA5E9,#0284C7)', color: '#fff', border: 'none', borderRadius: '10px', padding: '13px 28px', fontSize: '0.95rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '7px', boxShadow: '0 4px 20px rgba(14,165,233,0.35)', transition: 'all 0.2s' }}
-            onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 28px rgba(14,165,233,0.5)' }}
-            onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(14,165,233,0.35)' }}>
+            style={{ background: 'linear-gradient(135deg,#0EA5E9,#0284C7)', color: '#fff', border: 'none', borderRadius: '10px', padding: '13px 28px', fontSize: '0.95rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '7px', boxShadow: '0 0 16px rgba(14,165,233,0.3), 0 4px 20px rgba(14,165,233,0.25)', transition: 'all 0.2s' }}
+            onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 0 25px rgba(14,165,233,0.65), 0 8px 28px rgba(14,165,233,0.45)' }}
+            onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 0 16px rgba(14,165,233,0.3), 0 4px 20px rgba(14,165,233,0.25)' }}>
             Start Generating <ArrowRight size={17} />
           </button>
           <button style={{ background: 'transparent', color: 'var(--text-2)', border: '1.5px solid var(--border)', borderRadius: '10px', padding: '13px 28px', fontSize: '0.95rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}
@@ -118,15 +125,43 @@ export default function LandingPage() {
   )
 }
 
-function FeatureCard({ icon: Icon, title, description, color, glow }) {
+function FeatureCard({ icon: Icon, title, description }) {
+  const blueColor = '#0EA5E9'
+  const blueGlow = 'rgba(14,165,233,0.12)'
   return (
     <div
-      style={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '1.75rem', transition: 'all 0.28s ease', cursor: 'default' }}
-      onMouseEnter={(e) => { e.currentTarget.style.borderColor = color; e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = `0 8px 28px ${glow}` }}
-      onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none' }}
+      style={{ 
+        backgroundColor: 'var(--card)', 
+        border: '1px solid var(--border)', 
+        borderRadius: '16px', 
+        padding: '1.75rem', 
+        transition: 'all 0.28s ease', 
+        cursor: 'default',
+        textAlign: 'center' 
+      }}
+      onMouseEnter={(e) => { 
+        e.currentTarget.style.borderColor = blueColor; 
+        e.currentTarget.style.transform = 'translateY(-8px)'; 
+        e.currentTarget.style.boxShadow = '0 20px 35px rgba(14, 165, 233, 0.18)'; 
+      }}
+      onMouseLeave={(e) => { 
+        e.currentTarget.style.borderColor = 'var(--border)'; 
+        e.currentTarget.style.transform = 'none'; 
+        e.currentTarget.style.boxShadow = 'none'; 
+      }}
     >
-      <div style={{ width: '46px', height: '46px', borderRadius: '12px', backgroundColor: glow, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.1rem', border: `1px solid ${color}33` }}>
-        <Icon size={20} color={color} />
+      <div style={{ 
+        width: '46px', 
+        height: '46px', 
+        borderRadius: '12px', 
+        backgroundColor: blueGlow, 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        margin: '0 auto 1.1rem', 
+        border: `1px solid rgba(14,165,233,0.2)` 
+      }}>
+        <Icon size={20} color={blueColor} />
       </div>
       <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-1)', marginBottom: '0.6rem' }}>{title}</h3>
       <p style={{ color: 'var(--text-3)', fontSize: '0.875rem', lineHeight: 1.6 }}>{description}</p>

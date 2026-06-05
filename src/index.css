@@ -35,16 +35,16 @@
 html.dark {
   --canvas:       #0F172A;
   --card:         #1E293B;
-  --card-2:       #0F172A;
-  --border:       #334155;
+  --card-2:       #162032;
+  --border:       #2D3F55;
   --border-2:     #475569;
-  --text-1:       #F1F5F9;
-  --text-2:       #CBD5E1;
+  --text-1:       #E2E8F0;
+  --text-2:       #94A3B8;
   --text-3:       #64748B;
-  --input-bg:     #0F172A;
-  --input-border: #334155;
-  --nav-bg:       rgba(30,41,59,0.85);
-  --shadow:       0 4px 24px rgba(0,0,0,0.4);
+  --input-bg:     #192236;
+  --input-border: #2D3F55;
+  --nav-bg:       rgba(15, 23, 42, 0.85);
+  --shadow:       0 8px 30px rgba(0,0,0,0.35);
 }
 
 /* ── Reset ──────────────────────────────────────────────── */

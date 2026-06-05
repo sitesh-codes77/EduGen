@@ -1,4 +1,4 @@
-import { BookOpen, Layers, BarChart3, Award, CheckCircle2, FileText } from 'lucide-react'
+import { BookOpen, Layers, BarChart3, Award, CheckCircle2, FileText, Clock } from 'lucide-react'
 import { Q_TYPES } from './Step2QuestionComposition'
 
 const DIFF = [
@@ -7,14 +7,18 @@ const DIFF = [
   { key: 'hard',   label: 'Hard',   color: '#EF4444' },
 ]
 
-function Block({ icon: Icon, label, iconColor = '#0EA5E9', children }) {
+function Block({ icon: Icon, label, children }) {
   return (
-    <div style={{ backgroundColor: 'var(--card-2)', border: '1px solid var(--border)', borderRadius: '12px', padding: '1.1rem 1.25rem' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '0.65rem' }}>
-        <Icon size={15} color={iconColor} />
-        <span style={{ color: 'var(--text-3)', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{label}</span>
+    <div style={{ backgroundColor: 'var(--card)', border: '2px solid var(--border)', borderRadius: '16px', padding: '1.25rem 1.5rem', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-3)' }}>
+          <Icon size={16} />
+        </div>
+        <span style={{ color: 'var(--text-3)', fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{label}</span>
       </div>
-      {children}
+      <div>
+        {children}
+      </div>
     </div>
   )
 }
@@ -46,81 +50,108 @@ export default function Step4Review({ step1, step2, step3 }) {
   const pct = (n) => (totDiff > 0 ? Math.round((n / totDiff) * 100) : 0)
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
       {/* Title */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-        <div style={{ backgroundColor: 'var(--success-dim)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '999px', padding: '3px 11px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-          <CheckCircle2 size={12} color="#10B981" />
-          <span style={{ color: '#10B981', fontSize: '0.72rem', fontWeight: 700 }}>Ready to Generate</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+        <div style={{ backgroundColor: 'var(--success-dim)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '999px', padding: '4px 12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <CheckCircle2 size={13} color="#10B981" />
+          <span style={{ color: '#10B981', fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Ready to Generate</span>
         </div>
         <div>
-          <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-1)' }}>Review Summary</h2>
-          <p style={{ color: 'var(--text-3)', fontSize: '0.82rem' }}>Confirm your configuration before generating.</p>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.02em' }}>Review Summary</h2>
+          <p style={{ color: 'var(--text-3)', fontSize: '0.875rem' }}>Confirm paper configuration specifications before finalizing.</p>
         </div>
       </div>
 
       {/* Top blocks */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: '0.875rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: '1rem' }}>
         <Block icon={BookOpen} label="Selected Book" iconColor="#0EA5E9">
-          <p style={{ color: 'var(--text-1)', fontWeight: 700, fontSize: '0.9rem' }}>{step1.book || '—'}</p>
-          {step1.grade && <p style={{ color: 'var(--text-3)', fontSize: '0.78rem', marginTop: '3px' }}>Grade: {step1.grade}</p>}
+          <p style={{ color: 'var(--text-1)', fontWeight: 800, fontSize: '1rem', lineHeight: 1.4 }}>{step1.book || '—'}</p>
+          {step1.grade && <p style={{ color: 'var(--text-3)', fontSize: '0.8rem', fontWeight: 500, marginTop: '4px' }}>Grade Level: {step1.grade}</p>}
         </Block>
 
         <Block icon={Layers} label={`Chapters (${chapters.length})`} iconColor="#818CF8">
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
-            {chapters.slice(0, 4).map((ch) => (
-              <span key={ch} style={{ backgroundColor: 'rgba(129,140,248,0.12)', border: '1px solid rgba(129,140,248,0.25)', borderRadius: '5px', padding: '2px 7px', color: '#A5B4FC', fontSize: '0.72rem', fontWeight: 500 }}>{ch}</span>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '2px' }}>
+            {chapters.slice(0, 3).map((ch) => (
+              <span key={ch} style={{ backgroundColor: 'var(--card-2)', border: '1px solid var(--border)', borderRadius: '6px', padding: '3px 8px', color: 'var(--text-2)', fontSize: '0.72rem', fontWeight: 600 }}>{ch}</span>
             ))}
-            {chapters.length > 4 && <span style={{ color: 'var(--text-3)', fontSize: '0.72rem', alignSelf: 'center' }}>+{chapters.length - 4} more</span>}
+            {chapters.length > 3 && (
+              <span style={{ color: 'var(--text-3)', fontSize: '0.75rem', fontWeight: 600, alignSelf: 'center', marginLeft: '2px' }}>
+                +{chapters.length - 3} more
+              </span>
+            )}
           </div>
         </Block>
 
-        <Block icon={Award} label="Total Marks" iconColor="#10B981">
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '5px' }}>
-            <span style={{ color: '#10B981', fontWeight: 900, fontSize: '2rem', letterSpacing: '-0.03em' }}>{totalMarks}</span>
-            <span style={{ color: 'var(--text-3)', fontSize: '0.82rem' }}>/ {targetMarks}</span>
+        <Block icon={Award} label="Total Marks Score">
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+            <span style={{ color: '#10B981', fontWeight: 900, fontSize: '2.2rem', letterSpacing: '-0.03em' }}>{totalMarks}</span>
+            <span style={{ color: 'var(--text-3)', fontSize: '0.95rem', fontWeight: 700 }}>/ {targetMarks}</span>
           </div>
-          <p style={{ color: 'var(--text-3)', fontSize: '0.72rem', marginTop: '3px' }}>{totalQuestions} questions total</p>
+          <p style={{ color: 'var(--text-3)', fontSize: '0.78rem', fontWeight: 500, marginTop: '2px' }}>{totalQuestions} questions total</p>
         </Block>
+
+        {step2.duration && (
+          <Block icon={Clock} label="Duration">
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+              <span style={{ color: '#0EA5E9', fontWeight: 900, fontSize: '2.2rem', letterSpacing: '-0.03em' }}>{step2.duration}</span>
+              <span style={{ color: 'var(--text-3)', fontSize: '0.95rem', fontWeight: 700 }}>min</span>
+            </div>
+            <p style={{ color: 'var(--text-3)', fontSize: '0.78rem', fontWeight: 500, marginTop: '2px' }}>
+              {Math.floor(step2.duration / 60) > 0 ? `${Math.floor(step2.duration / 60)}h ${step2.duration % 60}m` : `${step2.duration} minutes`}
+            </p>
+          </Block>
+        )}
       </div>
 
       {/* Question breakdown */}
-      <Block icon={FileText} label="Question Breakdown">
+      <Block icon={FileText} label="Question Composition Invoice" iconColor="#0EA5E9">
         {qBreakdown.length === 0 ? (
           <p style={{ color: 'var(--text-3)', fontSize: '0.875rem' }}>No question types configured.</p>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.25rem' }}>
-            {qBreakdown.map((t) => (
-              <div key={t.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ color: 'var(--text-2)', fontSize: '0.875rem', fontWeight: 500 }}>{t.label}</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <span style={{ color: 'var(--text-3)', fontSize: '0.78rem' }}>{t.count} × {t.marks} marks</span>
-                  <span style={{ color: '#0EA5E9', fontWeight: 700, minWidth: '44px', textAlign: 'right', fontSize: '0.875rem' }}>{t.subtotal}</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.25rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              {qBreakdown.map((t) => (
+                <div key={t.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 0' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#0EA5E9' }} />
+                    <span style={{ color: 'var(--text-2)', fontSize: '0.875rem', fontWeight: 700 }}>{t.label}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+                    <span style={{ color: 'var(--text-3)', fontSize: '0.8rem', fontWeight: 500 }}>{t.count} × {t.marks} marks</span>
+                    <span style={{ color: 'var(--text-1)', fontWeight: 800, minWidth: '50px', textAlign: 'right', fontSize: '0.9rem' }}>{t.subtotal}</span>
+                  </div>
                 </div>
-              </div>
-            ))}
-            <div style={{ borderTop: '1px solid var(--border)', marginTop: '4px', paddingTop: '8px', display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-3)', fontWeight: 700, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total</span>
-              <span style={{ color: '#10B981', fontWeight: 900, fontSize: '1rem' }}>{totalMarks}</span>
+              ))}
+            </div>
+            <div style={{ borderTop: '1.5px solid var(--border)', marginTop: '8px', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ color: 'var(--text-3)', fontWeight: 800, fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Total Score Summary</span>
+              <span style={{ color: '#10B981', fontWeight: 900, fontSize: '1.25rem', letterSpacing: '-0.02em' }}>{totalMarks} <span style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--text-3)' }}>marks</span></span>
             </div>
           </div>
         )}
       </Block>
 
       {/* Difficulty distribution */}
-      <Block icon={BarChart3} label="Difficulty Distribution" iconColor="#F59E0B">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.7rem', marginTop: '0.25rem' }}>
+      <Block icon={BarChart3} label="Difficulty distribution" iconColor="#F59E0B">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '0.25rem' }}>
           {DIFF.map(({ key, label, color }) => {
             const val = key === 'easy' ? totEasy : key === 'medium' ? totMedium : totHard
             const p = pct(val)
             return (
-              <div key={key}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <span style={{ color, fontSize: '0.78rem', fontWeight: 600 }}>{label}</span>
-                  <span style={{ color: 'var(--text-2)', fontSize: '0.78rem', fontWeight: 700 }}>{val} questions ({p}%)</span>
+              <div key={key} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: color }} />
+                    <span style={{ color, fontSize: '0.8rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</span>
+                  </div>
+                  <span style={{ color: 'var(--text-1)', fontSize: '0.85rem', fontWeight: 800 }}>
+                    {val} {val === 1 ? 'question' : 'questions'}{' '}
+                    <span style={{ color: 'var(--text-3)', fontWeight: 500 }}>({p}%)</span>
+                  </span>
                 </div>
-                <div style={{ height: '5px', backgroundColor: 'var(--border)', borderRadius: '999px', overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${p}%`, backgroundColor: color, borderRadius: '999px', transition: 'width 0.5s ease' }} />
+                <div style={{ height: '7px', backgroundColor: 'var(--card)', borderRadius: '999px', overflow: 'hidden', border: '1px solid var(--border)' }}>
+                  <div style={{ height: '100%', width: `${p}%`, backgroundColor: color, borderRadius: '999px', transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)' }} />
                 </div>
               </div>
             )
