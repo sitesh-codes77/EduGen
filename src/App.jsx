@@ -4,6 +4,7 @@ import useWizardStore from './store/useWizardStore'
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
 import WizardPage from './pages/WizardPage'
+import NotFoundPage from './pages/NotFoundPage'
 import './index.css'
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/generator" element={<WizardPage />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   )

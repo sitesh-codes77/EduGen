@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, Phone, Lock, User, ArrowRight, Sparkles } from 'lucide-react'
+import { motion } from 'framer-motion'
 import ThemeToggle from '../components/ThemeToggle'
 
 export default function LoginPage() {
@@ -43,7 +44,12 @@ export default function LoginPage() {
 
       {/* Centered card */}
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
-        <div style={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '20px', padding: '2.25rem', width: '100%', maxWidth: '430px', boxShadow: 'var(--shadow)', position: 'relative', zIndex: 1 }}>
+        <motion.div 
+          initial={{ opacity: 0, y: 30, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.5, ease: 'easeOut' }}
+          style={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '20px', padding: '2.25rem', width: '100%', maxWidth: '430px', boxShadow: 'var(--shadow)', position: 'relative', zIndex: 1 }}
+        >
           {/* Card header */}
           <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '1.1rem' }}>
@@ -103,7 +109,7 @@ export default function LoginPage() {
             Don't have an account?{' '}
             <button style={{ background: 'none', border: 'none', color: '#0EA5E9', cursor: 'pointer', fontWeight: 600 }}>Contact Admin</button>
           </p>
-        </div>
+        </motion.div>
       </div>
     </div>
   )

@@ -81,7 +81,7 @@ function distributeQuestionsAndMarks(tqStr, tmStr, currentState) {
 
 const useWizardStore = create((set, get) => ({
   // ── Theme ──────────────────────────────────────────────
-  isDark: true,
+  isDark: false,
   toggleTheme: () =>
     set((state) => {
       const next = !state.isDark
@@ -171,6 +171,6 @@ const useWizardStore = create((set, get) => ({
 }))
 
 // Initialise theme on module load
-applyTheme(true)
+applyTheme(false)
 
 export default useWizardStore

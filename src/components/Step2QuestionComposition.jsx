@@ -269,7 +269,7 @@ export default function Step2QuestionComposition({
       </div>
 
       {/* ── Paper Basics Fieldset ── */}
-      <fieldset style={{ border: '1.5px solid var(--border)', borderRadius: '14px', padding: '0', backgroundColor: 'var(--card-2)', boxShadow: 'var(--shadow)' }}>
+      <fieldset style={{ border: '1.5px solid var(--border)', borderRadius: '14px', padding: '0', backgroundColor: 'var(--card)', boxShadow: 'var(--shadow)' }}>
         <legend style={{ marginLeft: '14px', padding: '0 8px', color: 'var(--text-3)', fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
           Paper Basics
         </legend>
@@ -331,10 +331,10 @@ export default function Step2QuestionComposition({
       </fieldset>
 
       {/* ── Distribution table ── */}
-      <div className="w-full overflow-x-auto" style={{ backgroundColor: 'var(--card-2)', border: '1px solid var(--border)', borderRadius: '18px', boxShadow: 'var(--shadow)' }}>
+      <div className="w-full overflow-x-auto" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '18px', boxShadow: 'var(--shadow)' }}>
         <div style={{ minWidth: '560px' }}>
           {/* Table header */}
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 120px 140px 130px', padding: '14px 20px', backgroundColor: 'var(--card)', borderBottom: '1px solid var(--border)', gap: '12px', borderTopLeftRadius: '18px', borderTopRightRadius: '18px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '2fr 120px 140px 130px', padding: '14px 20px', backgroundColor: 'var(--card-2)', borderBottom: '1px solid var(--border)', gap: '12px', borderTopLeftRadius: '18px', borderTopRightRadius: '18px' }}>
             <div style={{ color: 'var(--text-3)', fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Question Type</div>
             <div style={{ color: 'var(--text-3)', fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center' }}>Count</div>
             <div style={{ color: 'var(--text-3)', fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center' }}>
@@ -349,9 +349,9 @@ export default function Step2QuestionComposition({
 
             return (
               <div key={type.key}
-                style={{ display: 'grid', gridTemplateColumns: '2fr 120px 140px 130px', padding: '14px 20px', alignItems: 'center', gap: '12px', borderBottom: idx < Q_TYPES.length - 1 ? '1px solid var(--border)' : 'none', transition: 'background 0.2s ease' }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--card)')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}>
+                style={{ display: 'grid', gridTemplateColumns: '2fr 120px 140px 130px', padding: '14px 20px', alignItems: 'center', gap: '12px', borderBottom: idx < Q_TYPES.length - 1 ? '1px solid var(--border)' : 'none', backgroundColor: 'var(--card)', transition: 'background 0.2s ease' }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--card-2)')}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--card)')}>
 
                 {/* Type label */}
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>

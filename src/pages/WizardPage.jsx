@@ -249,7 +249,6 @@ export default function WizardPage() {
           style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', color: 'var(--text-3)', fontSize: '0.83rem', fontWeight: 500, cursor: 'pointer', transition: 'color 0.2s' }}
           onMouseEnter={(e) => (e.currentTarget.style.color = '#0EA5E9')}
           onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-3)')}>
-          <ArrowLeft size={15} />
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <NotebookText size={16} color="#0EA5E9" />
             <span style={{ fontWeight: 800, fontSize: '0.95rem', color: '#0EA5E9' }}>EduGen</span>
@@ -261,10 +260,6 @@ export default function WizardPage() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-            <div style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#10B981' }} />
-            <span style={{ color: 'var(--text-3)', fontSize: '0.75rem' }}>Auto-saving</span>
-          </div>
           <ThemeToggle />
         </div>
       </div>
@@ -317,11 +312,8 @@ export default function WizardPage() {
           </AnimatePresence>
         </div>
 
-        {/* Validation banner (Step 2 only) */}
-        {bannerMsg && <ValidationBanner message={bannerMsg} />}
-
         {/* ── Action Bar ── */}
-        <div style={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '14px', padding: '1rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: 'var(--shadow)', gap: '1rem', flexWrap: 'wrap' }}>
+        <div style={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '14px', padding: '1rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: isFinalStep ? 'flex-end' : 'space-between', boxShadow: 'var(--shadow)', gap: '1rem', flexWrap: 'wrap' }}>
           {/* Reset current step — hidden on Review page */}
           {!isFinalStep && (
             <button onClick={handleReset}

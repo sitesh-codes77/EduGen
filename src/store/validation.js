@@ -55,10 +55,10 @@ export const validateStep3 = (step3Data, step2Data, activeChapters) => {
         const row = (val[chapter] || {})[typeKey] || { easy: 0, medium: 0, hard: 0 }
         distributedSum += (Number(row.easy) || 0) + (Number(row.medium) || 0) + (Number(row.hard) || 0)
       }
-      if (distributedSum > targetCount) {
+      if (distributedSum !== targetCount) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: `Total distributed difficulty for ${typeKey.toUpperCase()} (${distributedSum}) exceeds the count defined in Step 2 (${targetCount}).`,
+          message: `Total distributed difficulty for ${typeKey.toUpperCase()} (${distributedSum}) must equal exactly the count defined in Step 2 (${targetCount}).`,
           path: [typeKey],
         })
       }

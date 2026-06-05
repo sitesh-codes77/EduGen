@@ -3,9 +3,9 @@ import { ChevronDown, ChevronRight, CheckCircle2, AlertTriangle, HelpCircle, Lay
 import { Q_TYPES } from './Step2QuestionComposition'
 
 const DIFF = [
-  { key: 'easy',   label: 'Easy',   color: '#76e6c0ff', focus: 'rgba(16,185,129,0.15)' },
+  { key: 'easy', label: 'Easy', color: '#76e6c0ff', focus: 'rgba(16,185,129,0.15)' },
   { key: 'medium', label: 'Medium', color: '#f0bf6aff', focus: 'rgba(245,158,11,0.15)' },
-  { key: 'hard',   label: 'Hard',   color: '#eb6a6aff', focus: 'rgba(239,68,68,0.15)' },
+  { key: 'hard', label: 'Hard', color: '#eb6a6aff', focus: 'rgba(239,68,68,0.15)' },
 ]
 
 /* ── small numeric input with color focus ring ─────────── */
@@ -44,12 +44,12 @@ function ChapterSection({ chapter, activeTypes, chapterData, step2Data, crossCha
   const [collapsed, setCollapsed] = useState(false)
 
   return (
-    <div style={{ backgroundColor: 'var(--card-2)', border: '1px solid var(--border)', borderRadius: '16px', overflow: 'hidden', boxShadow: 'var(--shadow)' }}>
+    <div style={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '16px', overflow: 'hidden', boxShadow: 'var(--shadow)' }}>
       {/* Chapter header */}
       <button type="button" onClick={() => setCollapsed(!collapsed)}
-        style={{ width: '100%', padding: '1rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'var(--card)', border: 'none', cursor: 'pointer', borderBottom: collapsed ? 'none' : '1px solid var(--border)', transition: 'background-color 0.2s' }}>
+        style={{ width: '100%', padding: '1rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'var(--card-2)', border: 'none', cursor: 'pointer', borderBottom: collapsed ? 'none' : '1px solid var(--border)', transition: 'background-color 0.2s' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ background: 'var(--card-2)', borderRadius: '8px', padding: '6px', color: 'var(--text-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border)' }}>
+          <div style={{ background: 'var(--card)', borderRadius: '8px', padding: '6px', color: 'var(--text-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border)' }}>
             {collapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
           </div>
           <span style={{ color: 'var(--text-1)', fontWeight: 700, fontSize: '0.9rem', letterSpacing: '-0.01em', textAlign: 'left' }}>{chapter}</span>
@@ -81,8 +81,8 @@ function ChapterSection({ chapter, activeTypes, chapterData, step2Data, crossCha
 
             {/* One row per active question type */}
             {activeTypes.map((type, idx) => {
-              const row     = chapterData[type.key] || { easy: 0, medium: 0, hard: 0 }
-              const rowSum  = row.easy + row.medium + row.hard
+              const row = chapterData[type.key] || { easy: 0, medium: 0, hard: 0 }
+              const rowSum = row.easy + row.medium + row.hard
               const typeMax = step2Data[type.key]?.count ?? 0
               const crossUsed = crossChapterTotals[type.key] || 0
               const remaining = typeMax - crossUsed
@@ -90,9 +90,9 @@ function ChapterSection({ chapter, activeTypes, chapterData, step2Data, crossCha
 
               return (
                 <div key={type.key}
-                  style={{ display: 'grid', gridTemplateColumns: '2fr 90px 90px 90px 80px', padding: '12px', alignItems: 'center', gap: '12px', borderTop: idx > 0 ? '1px solid var(--border)' : 'none', borderRadius: '10px', transition: 'background-color 0.2s' }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--card)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}>
+                  style={{ display: 'grid', gridTemplateColumns: '2fr 90px 90px 90px 80px', padding: '12px', alignItems: 'center', gap: '12px', borderTop: idx > 0 ? '1px solid var(--border)' : 'none', borderRadius: '10px', backgroundColor: 'var(--card)', transition: 'background-color 0.2s' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--card-2)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--card)')}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: rowSum > 0 ? '#0EA5E9' : 'var(--border-2)' }} />
                     <div>
@@ -170,19 +170,10 @@ export default function Step3DifficultyDistribution({ step2Data, data, onUpdate,
           const chapterAlloc = step2Data[type.key]?.chapterAlloc
 
           activeChapters.forEach((ch, idx) => {
-            let easyCount
-            if (chapterAlloc && chapterAlloc[ch] !== undefined) {
-              easyCount = chapterAlloc[ch]
-            } else {
-              const baseCount = Math.floor(totalCount / numChapters)
-              const remainder = totalCount % numChapters
-              easyCount = baseCount + (idx === 0 ? remainder : 0)
-            }
             newData[ch] = {
               ...newData[ch],
               [type.key]: {
-                ...(newData[ch][type.key] || {}),
-                easy: easyCount,
+                easy: 0,
                 medium: 0,
                 hard: 0
               }
@@ -195,7 +186,7 @@ export default function Step3DifficultyDistribution({ step2Data, data, onUpdate,
         onUpdate(newData)
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chapters, step2Data])
 
   // Cross-chapter totals per type (easy+medium+hard across all chapters)
@@ -208,12 +199,12 @@ export default function Step3DifficultyDistribution({ step2Data, data, onUpdate,
   })
 
   const handleChange = (chapter, typeKey, diffKey, val) => {
-    const prev     = data[chapter] || {}
+    const prev = data[chapter] || {}
     const prevType = prev[typeKey] || { easy: 0, medium: 0, hard: 0 }
     const max = step2Data[typeKey]?.count ?? 0
     let newType = { ...prevType, [diffKey]: val }
     let sum = newType.easy + newType.medium + newType.hard
-    
+
     if (sum > max) {
       let excess = sum - max
       if (diffKey !== 'easy' && newType.easy > 0) {
@@ -247,9 +238,9 @@ export default function Step3DifficultyDistribution({ step2Data, data, onUpdate,
   activeChapters.forEach((ch) => {
     activeTypes.forEach((t) => {
       const row = (data[ch] || {})[t.key] || { easy: 0, medium: 0, hard: 0 }
-      grandTotals.easy   += row.easy
+      grandTotals.easy += row.easy
       grandTotals.medium += row.medium
-      grandTotals.hard   += row.hard
+      grandTotals.hard += row.hard
     })
   })
 
@@ -282,7 +273,7 @@ export default function Step3DifficultyDistribution({ step2Data, data, onUpdate,
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: '0.875rem' }}>
           {activeTypes.map((type) => {
             const used = crossChapterTotals[type.key] || 0
-            const max  = step2Data[type.key]?.count ?? 0
+            const max = step2Data[type.key]?.count ?? 0
             const over = used > max
             const done = used === max
             return (
