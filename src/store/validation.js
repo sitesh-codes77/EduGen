@@ -3,7 +3,7 @@ import { z } from 'zod'
 // ── Step 1 Validation ───────────────────────────────────────
 export const step1Schema = z.object({
   book: z.string().min(1, 'Please select a book before continuing.'),
-  grade: z.string().optional(),
+  // grade: z.string().optional(),
   chapters: z.array(z.string()).optional(),
 })
 

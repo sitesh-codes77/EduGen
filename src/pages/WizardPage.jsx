@@ -161,18 +161,21 @@ export default function WizardPage() {
       const allocatedMarks = mcqMarks + msqMarks + numericalMarks + shortMarks + longMarks
       const allocatedQuestions = mcqCount + msqCount + numericalCount + shortCount + longCount
 
-      if (allocatedMarks !== targetMarks || allocatedQuestions !== targetQuestions) {
-        const msg = `Error: You allocated ${allocatedMarks} marks and ${allocatedQuestions} questions, but the target is ${targetMarks} marks and ${targetQuestions} questions.`
-        setBannerMsg(msg)
-        showToast(msg, 'error')
-        return false
-      }
+      const errors = []
 
+      // Run zod validation first
       const res = step2Schema.safeParse(step2)
       if (!res.success) {
-        const msg = res.error.errors[0].message
-        setBannerMsg(msg)
-        showToast(msg, 'error')
+        errors.push(...res.error.errors.map(e => e.message))
+      }
+
+      if (allocatedMarks !== targetMarks || allocatedQuestions !== targetQuestions) {
+        errors.push(`Error: You allocated ${allocatedMarks} marks and ${allocatedQuestions} questions, but the target is ${targetMarks} marks and ${targetQuestions} questions.`)
+      }
+
+      if (errors.length > 0) {
+        setBannerMsg(errors.join(' | '))
+        errors.forEach(err => showToast(err, 'error'))
         return false
       }
     } else if (step === 3) {
@@ -191,19 +194,22 @@ export default function WizardPage() {
         }
       }
 
-      if (sumDistributed !== targetQuestions) {
-        const missing = targetQuestions - sumDistributed
-        const msg = `Error: You have distributed ${sumDistributed} questions, but you need to distribute exactly ${targetQuestions} questions. You are missing ${missing} questions.`
-        setBannerMsg(msg)
-        showToast(msg, 'error')
-        return false
-      }
+      const errors = []
 
+      // Run zod validation first
       const res = validateStep3(step3, step2, activeChapters)
       if (!res.success) {
-        const msg = res.error.errors[0].message
-        setBannerMsg(msg)
-        showToast(msg, 'error')
+        errors.push(...res.error.errors.map(e => e.message))
+      }
+
+      if (sumDistributed !== targetQuestions) {
+        const missing = targetQuestions - sumDistributed
+        errors.push(`Error: You have distributed ${sumDistributed} questions, but you need to distribute exactly ${targetQuestions} questions. You are missing ${missing} questions.`)
+      }
+
+      if (errors.length > 0) {
+        setBannerMsg(errors.join(' | '))
+        errors.forEach(err => showToast(err, 'error'))
         return false
       }
     }
@@ -313,10 +319,10 @@ export default function WizardPage() {
         </div>
 
         {/* ── Action Bar ── */}
-        <div style={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '14px', padding: '1rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: isFinalStep ? 'flex-end' : 'space-between', boxShadow: 'var(--shadow)', gap: '1rem', flexWrap: 'wrap' }}>
+        <div className="action-bar" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '14px', padding: '1rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: isFinalStep ? 'flex-end' : 'space-between', boxShadow: 'var(--shadow)', gap: '1rem' }}>
           {/* Reset current step — hidden on Review page */}
           {!isFinalStep && (
-            <button onClick={handleReset}
+            <button onClick={handleReset} className="action-bar-btn"
               style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'transparent', border: '1.5px solid var(--border)', borderRadius: '9px', padding: '9px 18px', color: 'var(--text-3)', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}
               onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#EF4444'; e.currentTarget.style.color = '#EF4444' }}
               onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-3)' }}
@@ -328,7 +334,7 @@ export default function WizardPage() {
           <div style={{ display: 'flex', gap: '0.65rem', alignItems: 'center' }}>
             {/* Back */}
             {currentStep > 1 && (
-              <button onClick={handleBack}
+              <button onClick={handleBack} className="action-bar-btn"
                 style={{ backgroundColor: 'transparent', border: '1.5px solid var(--border)', borderRadius: '9px', padding: '9px 18px', color: 'var(--text-2)', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}
                 onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--text-2)'; e.currentTarget.style.color = 'var(--text-1)' }}
                 onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-2)' }}>
@@ -339,6 +345,7 @@ export default function WizardPage() {
             {/* Next / Generate */}
             <motion.button
               id={isFinalStep ? 'generateExamBtn' : 'nextStepBtn'}
+              className="action-bar-btn"
               onClick={handleNext}
               whileHover={{ scale: 1.02 }}
               style={{

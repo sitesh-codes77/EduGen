@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Eye, EyeOff, Phone, Lock, User, ArrowRight, Sparkles } from 'lucide-react'
+import { Eye, EyeOff, Phone, Lock, User, ArrowRight,NotebookText } from 'lucide-react'
 import { motion } from 'framer-motion'
 import ThemeToggle from '../components/ThemeToggle'
 
@@ -53,9 +53,9 @@ export default function LoginPage() {
           {/* Card header */}
           <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '1.1rem' }}>
-              <div style={{ background: 'linear-gradient(135deg,#0EA5E9,#6366F1)', borderRadius: '9px', padding: '7px' }}>
-                <Sparkles size={20} color="#fff" />
-              </div>
+              {/* <div style={{ background: 'linear-gradient(135deg,#0EA5E9,#6366F1)', borderRadius: '9px', padding: '7px' }}>
+              </div> */}
+              <NotebookText size={22} color="#1aaaedff" />
               <span style={{ fontWeight: 800, fontSize: '1.2rem', background: 'linear-gradient(90deg,#0EA5E9,#818CF8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>EduGen</span>
             </div>
             <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.02em', marginBottom: '0.4rem' }}>Welcome Back</h1>

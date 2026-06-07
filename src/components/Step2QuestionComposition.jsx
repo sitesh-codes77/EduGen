@@ -273,7 +273,7 @@ export default function Step2QuestionComposition({
         <legend style={{ marginLeft: '14px', padding: '0 8px', color: 'var(--text-3)', fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
           Paper Basics
         </legend>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.25rem', padding: '14px 18px 16px' }}>
+        <div className="paper-basics-grid">
           {/* Total Questions */}
           <div>
             <label htmlFor="totalQuestionsInput" style={labelStyle}>Total Questions</label>
@@ -331,7 +331,7 @@ export default function Step2QuestionComposition({
       </fieldset>
 
       {/* ── Distribution table ── */}
-      <div className="w-full overflow-x-auto" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '18px', boxShadow: 'var(--shadow)' }}>
+      <div className="w-full overflow-x-auto custom-scrollbar" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '18px', boxShadow: 'var(--shadow)', paddingBottom: '6px' }}>
         <div style={{ minWidth: '560px' }}>
           {/* Table header */}
           <div style={{ display: 'grid', gridTemplateColumns: '2fr 120px 140px 130px', padding: '14px 20px', backgroundColor: 'var(--card-2)', borderBottom: '1px solid var(--border)', gap: '12px', borderTopLeftRadius: '18px', borderTopRightRadius: '18px' }}>

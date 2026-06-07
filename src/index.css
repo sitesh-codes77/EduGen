@@ -71,3 +71,57 @@ input[type=number] { -moz-appearance: textfield; }
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+/* ── Custom Scrollbar for Mobile Tables ─────────────────── */
+.custom-scrollbar {
+  scrollbar-width: thin !important;
+  scrollbar-color: var(--border) transparent !important;
+}
+.custom-scrollbar::-webkit-scrollbar {
+  height: 6px !important;
+  width: 6px !important;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--border) !important;
+  border-radius: 99px !important;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--border-2) !important;
+}
+
+/* ── Responsive Paper Basics Grid ──────────────────────── */
+.paper-basics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  padding: 14px 18px 16px;
+}
+@media (max-width: 640px) {
+  .paper-basics-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+}
+
+/* ── Action Bar Single Row Layout ───────────────────────── */
+.action-bar {
+  flex-wrap: nowrap !important;
+}
+@media (max-width: 480px) {
+  .action-bar {
+    padding: 0.75rem 0.75rem !important;
+    gap: 0.5rem !important;
+  }
+  .action-bar-btn {
+    padding: 8px 10px !important;
+    font-size: 0.75rem !important;
+    gap: 4px !important;
+  }
+  .action-bar-btn svg {
+    width: 12px !important;
+    height: 12px !important;
+  }
+}

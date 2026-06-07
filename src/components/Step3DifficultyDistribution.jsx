@@ -68,8 +68,8 @@ function ChapterSection({ chapter, activeTypes, chapterData, step2Data, crossCha
       </button>
 
       {!collapsed && (
-        <div className="w-full overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-          <div style={{ minWidth: '500px', padding: '0.75rem 1rem' }}>
+        <div className="w-full overflow-x-auto custom-scrollbar" style={{ paddingBottom: '8px' }}>
+          <div style={{ minWidth: '500px', padding: '0.75rem 1rem 0' }}>
             {/* Sub-header row */}
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 90px 90px 90px 80px', padding: '10px 12px', gap: '12px' }}>
               <div style={{ color: 'var(--text-3)', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Question Type</div>
@@ -325,17 +325,19 @@ export default function Step3DifficultyDistribution({ step2Data, data, onUpdate,
               <p style={{ color: 'var(--text-3)', fontSize: '0.75rem', marginTop: '2px' }}>Total questions distributed by difficulty level</p>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: '2rem' }}>
-            {DIFF.map(({ key, label, color }) => (
-              <div key={key} style={{ textAlign: 'center', minWidth: '56px' }}>
-                <div style={{ color, fontWeight: 900, fontSize: '1.3rem' }}>{grandTotals[key]}</div>
-                <div style={{ color: 'var(--text-3)', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: '2px' }}>{label}</div>
+          <div className="w-full overflow-x-auto custom-scrollbar" style={{ paddingBottom: '6px' }}>
+            <div style={{ display: 'flex', gap: '2rem', minWidth: '340px', justifyContent: 'space-between', alignItems: 'center' }}>
+              {DIFF.map(({ key, label, color }) => (
+                <div key={key} style={{ textAlign: 'center', minWidth: '56px' }}>
+                  <div style={{ color, fontWeight: 900, fontSize: '1.3rem' }}>{grandTotals[key]}</div>
+                  <div style={{ color: 'var(--text-3)', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: '2px' }}>{label}</div>
+                </div>
+              ))}
+              <div style={{ height: '28px', width: '1px', backgroundColor: 'var(--border)', alignSelf: 'center' }} />
+              <div style={{ textAlign: 'center', minWidth: '56px' }}>
+                <div style={{ color: '#0EA5E9', fontWeight: 900, fontSize: '1.3rem' }}>{grandTotals.easy + grandTotals.medium + grandTotals.hard}</div>
+                <div style={{ color: 'var(--text-3)', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: '2px' }}>Total</div>
               </div>
-            ))}
-            <div style={{ height: '28px', width: '1px', backgroundColor: 'var(--border)', alignSelf: 'center' }} />
-            <div style={{ textAlign: 'center', minWidth: '56px' }}>
-              <div style={{ color: '#0EA5E9', fontWeight: 900, fontSize: '1.3rem' }}>{grandTotals.easy + grandTotals.medium + grandTotals.hard}</div>
-              <div style={{ color: 'var(--text-3)', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: '2px' }}>Total</div>
             </div>
           </div>
         </div>
