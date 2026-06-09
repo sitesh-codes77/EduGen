@@ -3,11 +3,11 @@ import { Settings2, X, HelpCircle, CheckCircle2, AlertCircle } from 'lucide-reac
 import { motion, AnimatePresence } from 'framer-motion'
 
 export const Q_TYPES = [
-  { key: 'mcq',       label: 'MCQ',          description: 'Multiple Choice – Single Answer',  defaultMarks: 1,  maxMarks: 10 },
-  { key: 'msq',       label: 'MSQ',          description: 'Multiple Select – Multi Answer',    defaultMarks: 2,  maxMarks: 10 },
-  { key: 'numerical', label: 'Numerical',    description: 'Number input answers',              defaultMarks: 4,  maxMarks: 20 },
-  { key: 'short',     label: 'Short Answer', description: '2–3 sentence answers',              defaultMarks: 3,  maxMarks: 10 },
-  { key: 'long',      label: 'Long Answer',  description: 'Essay-type detailed answers',       defaultMarks: 5,  maxMarks: 20 },
+  { key: 'mcq', label: 'MCQ', description: 'Multiple Choice – Single Answer', defaultMarks: 1, maxMarks: 10 },
+  { key: 'msq', label: 'MSQ', description: 'Multiple Select – Multi Answer', defaultMarks: 2, maxMarks: 10 },
+  { key: 'numerical', label: 'Numerical', description: 'Number input answers', defaultMarks: 4, maxMarks: 20 },
+  { key: 'short', label: 'Short Answer', description: '2–3 sentence answers', defaultMarks: 3, maxMarks: 10 },
+  { key: 'long', label: 'Long Answer', description: 'Essay-type detailed answers', defaultMarks: 5, maxMarks: 20 },
 ]
 
 /* ─── Red flash toast ─────────────────────────────────── */
@@ -56,8 +56,8 @@ function StepperInput({ value, onChange, min = 0, max = 999, active = false, pla
   const [focused, setFocused] = useState(false)
 
   const borderColor = focused ? '#0EA5E9' : active ? '#0EA5E9' : 'var(--input-border)'
-  const bg          = active ? 'var(--primary-dim)' : 'var(--input-bg)'
-  const textColor   = active ? '#0EA5E9' : 'var(--text-1)'
+  const bg = active ? 'var(--primary-dim)' : 'var(--input-bg)'
+  const textColor = active ? '#0EA5E9' : 'var(--text-1)'
 
   return (
     <div style={{
@@ -77,6 +77,7 @@ function StepperInput({ value, onChange, min = 0, max = 999, active = false, pla
           onChange(Math.max(min, Math.min(max, v)))
         }}
         onFocus={() => setFocused(true)}
+        onWheel={(e) => e.target.blur()}
         onBlur={() => setFocused(false)}
         style={{
           width: '52px', border: 'none', outline: 'none', background: 'transparent',
@@ -217,11 +218,11 @@ export default function Step2QuestionComposition({
   data, chapters = [],
   onTotalQChange, onTotalMarksChange, onDurationChange, onTypeConfig,
 }) {
-  const [configOpen, setConfigOpen]   = useState(null)
+  const [configOpen, setConfigOpen] = useState(null)
   const { msg: errMsg, visible: errVisible, flash } = useErrorFlash()
 
   const tq = data.totalQuestions === '' ? 0 : Number(data.totalQuestions)
-  const tm = data.totalMarks     === '' ? 0 : Number(data.totalMarks)
+  const tm = data.totalMarks === '' ? 0 : Number(data.totalMarks)
 
   const allocatedCount = Q_TYPES.reduce((s, t) => s + (data[t.key]?.count ?? 0), 0)
   const allocatedMarks = Q_TYPES.reduce((s, t) => s + (data[t.key]?.count ?? 0) * (data[t.key]?.marks ?? 0), 0)

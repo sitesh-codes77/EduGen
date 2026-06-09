@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   BookOpen, ListChecks, BarChart3, ClipboardCheck,
-  ChevronRight, RotateCcw, Sparkles, FileCheck2,
-  ArrowLeft, X, Check, AlertCircle, NotebookText
+  ChevronRight, RotateCcw, FileCheck2,
+   X, Check, AlertCircle, NotebookText
 } from 'lucide-react'
 import useWizardStore from '../store/useWizardStore'
 import ThemeToggle from '../components/ThemeToggle'
@@ -18,9 +18,9 @@ import { step1Schema, step2Schema, validateStep3 } from '../store/validation'
 
 /* ── Step metadata ──────────────────────────────────────── */
 const STEPS = [
-  { id: 1, label: 'Content',     sublabel: 'Book & Chapters',      icon: BookOpen     },
-  { id: 2, label: 'Composition', sublabel: 'Questions & Marks',     icon: ListChecks   },
-  { id: 3, label: 'Difficulty',  sublabel: 'Easy / Medium / Hard',  icon: BarChart3    },
+  { id: 1, label: 'Content',     sublabel: 'Book & Chapters',      icon: BookOpen    },
+  { id: 2, label: 'Composition', sublabel: 'Questions & Marks',     icon: ListChecks  },
+  { id: 3, label: 'Difficulty',  sublabel: 'Easy / Medium / Hard',  icon: BarChart3   },
   { id: 4, label: 'Review',      sublabel: 'Confirm & Generate',    icon: ClipboardCheck },
 ]
 
@@ -98,16 +98,6 @@ function GenerateModal({ onClose }) {
   )
 }
 
-/* ── Inline validation error banner ─────────────────────── */
-function ValidationBanner({ message }) {
-  if (!message) return null
-  return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', backgroundColor: 'var(--danger-dim)', border: '1.5px solid rgba(239,68,68,0.35)', borderRadius: '10px', padding: '0.85rem 1rem', marginTop: '-0.5rem' }}>
-      <AlertCircle size={17} color="#EF4444" style={{ flexShrink: 0, marginTop: '1px' }} />
-      <p style={{ color: '#EF4444', fontSize: '0.85rem', lineHeight: 1.5 }}>{message}</p>
-    </div>
-  )
-}
 
 /* ── Wizard Page ────────────────────────────────────────── */
 export default function WizardPage() {
@@ -132,13 +122,14 @@ export default function WizardPage() {
 
   const isFinalStep = currentStep === 4
 
-  /* ── Validation ─────────────────────────────────────── */
+ /* ── Validation ─────────────────────────────────────── */
   const validateStep = (step) => {
     if (step === 1) {
       const res = step1Schema.safeParse(step1)
       if (!res.success) {
-        const msg = res.error.errors[0].message
-        setBannerMsg(msg)
+        // Bulletproof Zod error extraction
+        const zodErrors = res.error?.issues || res.error?.errors || [];
+        const msg = zodErrors.length > 0 ? zodErrors[0].message : "Please select valid content.";
         showToast(msg, 'error')
         return false
       }
@@ -163,20 +154,21 @@ export default function WizardPage() {
 
       const errors = []
 
-      // Run zod validation first
+      // Bulletproof Zod parsing
       const res = step2Schema.safeParse(step2)
       if (!res.success) {
-        errors.push(...res.error.errors.map(e => e.message))
+        const zodErrors = res.error?.issues || res.error?.errors || [];
+        errors.push(...zodErrors.map(e => e.message))
       }
 
+      // STRICT VALIDATION GATE
       if (allocatedMarks !== targetMarks || allocatedQuestions !== targetQuestions) {
-        errors.push(`Error: You allocated ${allocatedMarks} marks and ${allocatedQuestions} questions, but the target is ${targetMarks} marks and ${targetQuestions} questions.`)
+        errors.push(`Configuration Mismatch: Your allocated rows (${allocatedQuestions} Qs / ${allocatedMarks} Marks) do not perfectly match the target paper totals (${targetQuestions} Qs / ${targetMarks} Marks).`)
       }
 
       if (errors.length > 0) {
-        setBannerMsg(errors.join(' | '))
         errors.forEach(err => showToast(err, 'error'))
-        return false
+        return false // Stops the user from proceeding
       }
     } else if (step === 3) {
       const targetQuestions = Number(step2.totalQuestions) || 0
@@ -196,32 +188,29 @@ export default function WizardPage() {
 
       const errors = []
 
-      // Run zod validation first
+      // Bulletproof Zod parsing
       const res = validateStep3(step3, step2, activeChapters)
       if (!res.success) {
-        errors.push(...res.error.errors.map(e => e.message))
+        const zodErrors = res.error?.issues || res.error?.errors || [];
+        errors.push(...zodErrors.map(e => e.message))
       }
 
       if (sumDistributed !== targetQuestions) {
-        const missing = targetQuestions - sumDistributed
-        errors.push(`Error: You have distributed ${sumDistributed} questions, but you need to distribute exactly ${targetQuestions} questions. You are missing ${missing} questions.`)
+        errors.push(`Difficulty Mismatch: You have distributed ${sumDistributed} questions, but you need to distribute exactly ${targetQuestions} questions.`)
       }
 
       if (errors.length > 0) {
-        setBannerMsg(errors.join(' | '))
         errors.forEach(err => showToast(err, 'error'))
-        return false
+        return false // Stops the user from proceeding
       }
     }
-    setBannerMsg('')
     return true
   }
-
   const handleNext = () => {
     if (!validateStep(currentStep)) return
     if (currentStep < 4) {
       if (currentStep === 2 || currentStep === 3) {
-        showToast('Configuration saved successfully!', 'success')
+        showToast('Configuration perfectly balanced & saved!', 'success')
       }
       setStep(currentStep + 1)
     }
@@ -279,6 +268,8 @@ export default function WizardPage() {
             <Stepper current={currentStep} onGoto={handleGoto} />
           </div>
         </div>
+
+       
 
         {/* Step content card */}
         <div style={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '14px', padding: '2rem', boxShadow: 'var(--shadow)', flex: 1 }}>

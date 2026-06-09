@@ -149,7 +149,7 @@ export default function Step1ContentSelection({ data, onChange }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       <div>
         <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-1)', marginBottom: '0.3rem' }}>Content Selection</h2>
-        <p style={{ color: 'var(--text-3)', fontSize: '0.875rem' }}>Choose the textbook, grade, and chapters to draw questions from.</p>
+        <p style={{ color: 'var(--text-3)', fontSize: '0.875rem' }}>Choose the textbook and chapters to draw questions from.</p>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>

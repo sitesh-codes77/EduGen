@@ -7,7 +7,7 @@ const ICONS = {
   info:    { Icon: Info,          color: '#0EA5E9', bg: 'rgba(14,165,233,0.1)',  border: 'rgba(14,165,233,0.3)' },
 }
 
-export function Toast({ message, type = 'error', onClose, duration = 4500 }) {
+export function Toast({ message, type = 'error', onClose, duration = 45000 }) {
   const [visible, setVisible] = useState(false)
   const { Icon, color, bg, border } = ICONS[type] || ICONS.error
 

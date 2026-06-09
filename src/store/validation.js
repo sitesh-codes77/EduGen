@@ -49,18 +49,34 @@ export const validateStep3 = (step3Data, step2Data, activeChapters) => {
 
   const schema = z.record(z.any()).superRefine((val, ctx) => {
     for (const typeKey of activeTypes) {
-      const targetCount = step2Data[typeKey]?.count ?? 0
-      let distributedSum = 0
-      for (const chapter of chapters) {
+      const typeConfig = step2Data[typeKey] || {}
+      const totalCount = typeConfig.count ?? 0
+      const alloc = typeConfig.chapterAlloc || {}
+
+      for (let i = 0; i < chapters.length; i++) {
+        const chapter = chapters[i]
+        
+        // Match the same strict chapter target logic
+        let chapterTarget = alloc[chapter];
+        if (chapterTarget === undefined) {
+            const perCh = Math.floor(totalCount / chapters.length);
+            const rem = totalCount % chapters.length;
+            chapterTarget = (i === 0) ? perCh + rem : perCh;
+        }
+
+        if (chapterTarget === 0) continue; // Skip if this chapter doesn't need this type
+
         const row = (val[chapter] || {})[typeKey] || { easy: 0, medium: 0, hard: 0 }
-        distributedSum += (Number(row.easy) || 0) + (Number(row.medium) || 0) + (Number(row.hard) || 0)
-      }
-      if (distributedSum !== targetCount) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `Total distributed difficulty for ${typeKey.toUpperCase()} (${distributedSum}) must equal exactly the count defined in Step 2 (${targetCount}).`,
-          path: [typeKey],
-        })
+        const distributedSum = (Number(row.easy) || 0) + (Number(row.medium) || 0) + (Number(row.hard) || 0)
+
+        // STRICT GATE: Blocks navigation if the chapter row doesn't match the specific target
+        if (distributedSum !== chapterTarget) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Difficulty Mismatch in "${chapter}": You distributed ${distributedSum} for ${typeKey.toUpperCase()}, but the target is exactly ${chapterTarget}.`,
+            path: [chapter, typeKey],
+          })
+        }
       }
     }
   })

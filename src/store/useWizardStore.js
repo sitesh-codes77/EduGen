@@ -3,19 +3,19 @@ import { create } from 'zustand'
 const INITIAL_STEP1 = { book: '', grade: '', chapters: [] }
 
 const INITIAL_STEP2 = {
+  isAutoDistributed: true, // FLAG: True initially, turns false on manual edit
   totalQuestions: '',
   totalMarks: '',
   duration: '',
-  mcq:   { count: 0, marks: 1 },
-  msq:   { count: 0, marks: 2 },
+  mcq:       { count: 0, marks: 1 },
+  msq:       { count: 0, marks: 2 },
   numerical: { count: 0, marks: 4 },
-  short: { count: 0, marks: 3 },
-  long:  { count: 0, marks: 5 },
+  short:     { count: 0, marks: 3 },
+  long:      { count: 0, marks: 5 },
 }
 
 const INITIAL_STEP3 = {}
 
-// Apply dark class to <html> immediately (SSR-safe)
 function applyTheme(isDark) {
   if (isDark) {
     document.documentElement.classList.add('dark')
@@ -24,63 +24,45 @@ function applyTheme(isDark) {
   }
 }
 
-function distributeQuestionsAndMarks(tqStr, tmStr, currentState) {
+// Pure math distribution - only runs if isAutoDistributed is true
+function distributeQuestionsAndMarks(tqStr, tmStr) {
   const tq = tqStr === '' ? 0 : Number(tqStr)
   const tm = tmStr === '' ? 0 : Number(tmStr)
 
   const defaultState = {
-    mcq: { count: 0, marks: 1 },
-    msq: { count: 0, marks: 2 },
+    mcq:       { count: 0, marks: 1 },
+    msq:       { count: 0, marks: 2 },
     numerical: { count: 0, marks: 4 },
-    short: { count: 0, marks: 3 },
-    long: { count: 0, marks: 5 },
+    short:     { count: 0, marks: 3 },
+    long:      { count: 0, marks: 5 },
   }
 
-  if (tq <= 0) return defaultState
-  if (tm <= 0 || tq > tm) return { ...defaultState, mcq: { count: tq, marks: 1 } }
+  if (tq <= 0 || tm <= 0) return defaultState
 
-  const avg = Math.floor(tm / tq)
-  const rem = tm % tq
-
-  if (avg >= 20 || (avg === 20 && rem > 0)) {
-    return { ...defaultState, long: { count: tq, marks: 20 } }
+  if (tm % tq === 0) {
+    return { ...defaultState, mcq: { count: tq, marks: Math.floor(tm / tq) } }
   }
 
-  if (avg < 10 || (avg === 10 && rem === 0)) {
-    if (rem === 0) {
-      return { ...defaultState, mcq: { count: tq, marks: avg } }
-    }
+  const baseMarks = Math.floor(tm / tq)
+  if (baseMarks === 0) {
+    return { ...defaultState, mcq: { count: tq, marks: 1 } }
+  }
+
+  const msqCount = tm - (tq * baseMarks)
+  const mcqCount = tq - msqCount
+
+  if (mcqCount > 0 && msqCount > 0) {
     return {
       ...defaultState,
-      mcq: { count: tq - rem, marks: avg },
-      msq: { count: rem, marks: avg + 1 },
+      mcq: { count: mcqCount, marks: baseMarks },
+      msq: { count: msqCount, marks: baseMarks + 1 }
     }
   }
 
-  if (avg === 10 && rem > 0) {
-    return {
-      ...defaultState,
-      mcq: { count: tq - rem, marks: 10 },
-      numerical: { count: rem, marks: 11 },
-    }
-  }
-
-  if (avg > 10 && avg < 20) {
-    if (rem === 0) {
-      return { ...defaultState, numerical: { count: tq, marks: avg } }
-    }
-    return {
-      ...defaultState,
-      numerical: { count: tq - rem, marks: avg },
-      long: { count: rem, marks: avg + 1 },
-    }
-  }
-
-  return defaultState
+  return { ...defaultState, mcq: { count: tq, marks: baseMarks } }
 }
 
 const useWizardStore = create((set, get) => ({
-  // ── Theme ──────────────────────────────────────────────
   isDark: false,
   toggleTheme: () =>
     set((state) => {
@@ -89,51 +71,55 @@ const useWizardStore = create((set, get) => ({
       return { isDark: next }
     }),
 
-  // ── Wizard navigation ──────────────────────────────────
   currentStep: 1,
   setStep: (step) => set({ currentStep: step }),
 
-  // ── Step data ──────────────────────────────────────────
   step1: { ...INITIAL_STEP1 },
   step2: { ...INITIAL_STEP2 },
   step3: { ...INITIAL_STEP3 },
 
-  // ── Step 1 updater ─────────────────────────────────────
   updateStep1: (data) => set({ step1: data }),
 
-  // ── Step 2 updater ─────────────────────────────────────
+  // ── Step 2 updaters ────────────────────────────────────
   setTotalQuestions: (val) =>
-    set((state) => ({
-      step2: {
-        ...state.step2,
-        totalQuestions: val,
-        ...distributeQuestionsAndMarks(val, state.step2.totalMarks, state.step2),
-      },
-    })),
+    set((state) => {
+      const shouldAuto = state.step2.isAutoDistributed; // Checks the flag
+      return {
+        step2: {
+          ...state.step2,
+          totalQuestions: val,
+          ...(shouldAuto ? distributeQuestionsAndMarks(val, state.step2.totalMarks) : {}),
+        },
+      }
+    }),
 
   setTotalMarks: (val) =>
-    set((state) => ({
-      step2: {
-        ...state.step2,
-        totalMarks: val,
-        ...distributeQuestionsAndMarks(state.step2.totalQuestions, val, state.step2),
+    set((state) => {
+      const shouldAuto = state.step2.isAutoDistributed; // Checks the flag
+      return {
+        step2: {
+          ...state.step2,
+          totalMarks: val,
+          ...(shouldAuto ? distributeQuestionsAndMarks(state.step2.totalQuestions, val) : {}),
+        }
       }
-    })),
+    }),
 
   setDuration: (val) =>
     set((state) => ({
       step2: { ...state.step2, duration: val },
     })),
 
+  // THIS IS THE GATEKEEPER. If the user touches the +/-, this fires and locks the auto-calc.
   updateTypeConfig: (typeKey, patch) =>
     set((state) => ({
       step2: {
         ...state.step2,
+        isAutoDistributed: false, // FLAG TURNS FALSE! Manual edits are now protected.
         [typeKey]: { ...state.step2[typeKey], ...patch },
       },
     })),
 
-  // ── Step 3 updater ─────────────────────────────────────
   updateStep3: (data) => set({ step3: data }),
 
   updateChapterDifficulty: (chapter, typeKey, field, val) =>
@@ -151,16 +137,13 @@ const useWizardStore = create((set, get) => ({
       }
     }),
 
-  // ── Per-step reset (keeps currentStep, keeps other steps) ─
   resetCurrentStep: () => {
     const { currentStep } = get()
     if (currentStep === 1) set({ step1: { ...INITIAL_STEP1 } })
-    if (currentStep === 2) set({ step2: { ...INITIAL_STEP2 } })
+    if (currentStep === 2) set({ step2: { ...INITIAL_STEP2 } }) // Resets flag back to true
     if (currentStep === 3) set({ step3: { ...INITIAL_STEP3 } })
-    // Step 4 has no editable data — nothing to clear
   },
 
-  // ── Full reset (start over) ───────────────────────────
   resetAll: () =>
     set({
       currentStep: 1,
@@ -170,7 +153,6 @@ const useWizardStore = create((set, get) => ({
     }),
 }))
 
-// Initialise theme on module load
 applyTheme(false)
 
 export default useWizardStore
